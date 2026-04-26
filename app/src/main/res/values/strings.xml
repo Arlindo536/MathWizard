@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Math Wizard</string>
+    <string name="play">Play Math</string>
+    <string name="settings">Settings</string>
+    <string name="high_score">High Score</string>
+    <string name="score_label">Score: %1$d</string>
+    <string name="best_score_label">Best Score: %1$d</string>
+    <string name="toggle_tts">Enable Text-to-Speech (TTS)</string>
+    <string name="reset_score">Reset High Score</string>
+    <string name="correct_answer">Correct!</string>
+    <string name="wrong_answer">Wrong. Try Again!</string>
+</resources>

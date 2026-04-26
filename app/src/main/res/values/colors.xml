@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="primary">#FF6200EE</color>
+    <color name="primary_variant">#FF3700B3</color>
+    <color name="secondary">#FF03DAC5</color>
+    
+    <color name="background">#FFF8F9FA</color>
+    <color name="text_color">#FF212529</color>
+    <color name="card_background">#FFFFFFFF</color>
+    
+    <color name="correct_color">#FF4CAF50</color>
+    <color name="wrong_color">#FFF44336</color>
+</resources>
