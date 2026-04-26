@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="@dimen/padding_large"
+    tools:context=".DifficultyActivity">
+
+    <TextView
+        android:id="@+id/tvDiffTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/difficulty_title"
+        android:textSize="@dimen/text_large"
+        android:textColor="@color/primary"
+        android:textStyle="bold"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_marginTop="32dp" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnEasy"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="@string/diff_easy"
+        android:textSize="20sp"
+        android:layout_marginTop="64dp"
+        app:cornerRadius="@dimen/button_corner_radius"
+        app:layout_constraintTop_toBottomOf="@id/tvDiffTitle" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnMedium"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="@string/diff_med"
+        android:textSize="20sp"
+        android:layout_marginTop="16dp"
+        app:cornerRadius="@dimen/button_corner_radius"
+        app:layout_constraintTop_toBottomOf="@id/btnEasy" />
+
+    <com.google.android.material.button.MaterialButton
+        android:id="@+id/btnHard"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="@string/diff_hard"
+        android:textSize="20sp"
+        android:layout_marginTop="16dp"
+        app:cornerRadius="@dimen/button_corner_radius"
+        app:layout_constraintTop_toBottomOf="@id/btnMedium" />
+
+</androidx.constraintlayout.widget.ConstraintLayout>

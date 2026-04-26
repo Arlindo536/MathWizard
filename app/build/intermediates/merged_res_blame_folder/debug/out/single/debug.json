@@ -1,0 +1,18 @@
+[
+    {
+        "merged": "com.example.mathwizard.app-merged_res-36:/layout_activity_quiz.xml.flat",
+        "source": "com.example.mathwizard.app-main-38:/layout/activity_quiz.xml"
+    },
+    {
+        "merged": "com.example.mathwizard.app-merged_res-36:/layout_activity_main.xml.flat",
+        "source": "com.example.mathwizard.app-main-38:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.example.mathwizard.app-merged_res-36:/layout_activity_settings.xml.flat",
+        "source": "com.example.mathwizard.app-main-38:/layout/activity_settings.xml"
+    },
+    {
+        "merged": "com.example.mathwizard.app-merged_res-36:/layout_activity_high_score.xml.flat",
+        "source": "com.example.mathwizard.app-main-38:/layout/activity_high_score.xml"
+    }
+]

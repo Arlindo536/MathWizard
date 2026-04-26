@@ -2,11 +2,22 @@
     <string name="app_name">Math Wizard</string>
     <string name="play">Play Math</string>
     <string name="settings">Settings</string>
-    <string name="high_score">High Score</string>
+    <string name="high_score">Statistics</string>
     <string name="score_label">Score: %1$d</string>
     <string name="best_score_label">Best Score: %1$d</string>
-    <string name="toggle_tts">Enable Text-to-Speech (TTS)</string>
-    <string name="reset_score">Reset High Score</string>
+    <string name="toggle_tts">Enable Text-to-Speech</string>
+    <string name="toggle_haptics">Enable Haptics (Vibration)</string>
+    <string name="toggle_high_contrast">High Contrast Mode</string>
+    <string name="reset_score">Reset Statistics</string>
     <string name="correct_answer">Correct!</string>
     <string name="wrong_answer">Wrong. Try Again!</string>
+    
+    <string name="difficulty_title">Select Difficulty</string>
+    <string name="diff_easy">Easy (Addition 1-10)</string>
+    <string name="diff_med">Medium (Add/Sub 1-20)</string>
+    <string name="diff_hard">Hard (Multiplication)</string>
+    
+    <string name="stats_title">Your Statistics</string>
+    <string name="stats_played">Total Played: %1$d</string>
+    <string name="stats_accuracy">Accuracy: %1$d%%</string>
 </resources>

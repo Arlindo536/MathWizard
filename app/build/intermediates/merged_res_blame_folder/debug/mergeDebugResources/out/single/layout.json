@@ -1,0 +1,34 @@
+[
+    {
+        "merged": "/home/arlindodishi/.gradle/daemon/8.13/com.example.mathwizard.app-mergeDebugResources-35:/layout/activity_high_score.xml",
+        "source": "/home/arlindodishi/.gradle/daemon/8.13/com.example.mathwizard.app-main-38:/layout/activity_high_score.xml"
+    },
+    {
+        "merged": "com.example.mathwizard.app-mergeDebugResources-35:/layout/activity_quiz.xml",
+        "source": "com.example.mathwizard.app-main-38:/layout/activity_quiz.xml"
+    },
+    {
+        "merged": "/home/arlindodishi/.gradle/daemon/8.13/com.example.mathwizard.app-mergeDebugResources-35:/layout/activity_settings.xml",
+        "source": "/home/arlindodishi/.gradle/daemon/8.13/com.example.mathwizard.app-main-38:/layout/activity_settings.xml"
+    },
+    {
+        "merged": "/home/arlindodishi/.gradle/daemon/8.13/com.example.mathwizard.app-mergeDebugResources-35:/layout/activity_main.xml",
+        "source": "/home/arlindodishi/.gradle/daemon/8.13/com.example.mathwizard.app-main-38:/layout/activity_main.xml"
+    },
+    {
+        "merged": "com.example.mathwizard.app-mergeDebugResources-35:/layout/activity_high_score.xml",
+        "source": "com.example.mathwizard.app-main-38:/layout/activity_high_score.xml"
+    },
+    {
+        "merged": "/home/arlindodishi/.gradle/daemon/8.13/com.example.mathwizard.app-mergeDebugResources-35:/layout/activity_quiz.xml",
+        "source": "/home/arlindodishi/.gradle/daemon/8.13/com.example.mathwizard.app-main-38:/layout/activity_quiz.xml"
+    },
+    {
+        "merged": "com.example.mathwizard.app-mergeDebugResources-35:/layout/activity_settings.xml",
+        "source": "com.example.mathwizard.app-main-38:/layout/activity_settings.xml"
+    },
+    {
+        "merged": "com.example.mathwizard.app-mergeDebugResources-35:/layout/activity_difficulty.xml",
+        "source": "com.example.mathwizard.app-main-38:/layout/activity_difficulty.xml"
+    }
+]

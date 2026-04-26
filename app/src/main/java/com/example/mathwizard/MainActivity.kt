@@ -12,8 +12,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         findViewById<Button>(R.id.btnPlay).setOnClickListener {
-            // Explicit Intent to QuizActivity
-            startActivity(Intent(this, QuizActivity::class.java))
+            startActivity(Intent(this, DifficultyActivity::class.java))
         }
 
         findViewById<Button>(R.id.btnSettings).setOnClickListener {

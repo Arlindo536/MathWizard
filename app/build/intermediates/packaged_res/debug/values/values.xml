@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="background">#FFF8F9FA</color>
+    <color name="card_background">#FFFFFFFF</color>
+    <color name="correct_color">#FF4CAF50</color>
+    <color name="primary">#FF6200EE</color>
+    <color name="primary_variant">#FF3700B3</color>
+    <color name="secondary">#FF03DAC5</color>
+    <color name="text_color">#FF212529</color>
+    <color name="wrong_color">#FFF44336</color>
+    <dimen name="button_corner_radius">12dp</dimen>
+    <dimen name="padding_large">32dp</dimen>
+    <dimen name="padding_medium">16dp</dimen>
+    <dimen name="text_large">36sp</dimen>
+    <dimen name="text_medium">24sp</dimen>
+    <string name="app_name">Math Wizard</string>
+    <string name="best_score_label">Best Score: %1$d</string>
+    <string name="correct_answer">Correct!</string>
+    <string name="high_score">High Score</string>
+    <string name="play">Play Math</string>
+    <string name="reset_score">Reset High Score</string>
+    <string name="score_label">Score: %1$d</string>
+    <string name="settings">Settings</string>
+    <string name="toggle_tts">Enable Text-to-Speech (TTS)</string>
+    <string name="wrong_answer">Wrong. Try Again!</string>
+    <style name="Theme.MathWizard" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryVariant">@color/primary_variant</item>
+        <item name="colorOnPrimary">@color/card_background</item>
+        
+        
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorSecondaryVariant">@color/secondary</item>
+        <item name="colorOnSecondary">@color/text_color</item>
+        
+        
+        <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
+        
+        <item name="android:windowBackground">@color/background</item>
+    </style>
+</resources>

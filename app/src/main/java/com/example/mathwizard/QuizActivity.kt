@@ -1,9 +1,13 @@
 package com.example.mathwizard
 
 import android.content.Context
+import android.os.Build
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
+import android.os.VibrationEffect
+import android.os.Vibrator
+import android.os.VibratorManager
 import android.speech.tts.TextToSpeech
 import android.view.View
 import android.widget.Button
@@ -17,6 +21,9 @@ class QuizActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
     private val viewModel: QuizViewModel by viewModels()
     private var tts: TextToSpeech? = null
+    private var vibrator: Vibrator? = null
+    private var hapticsEnabled = false
+    private var highContrast = false
     
     // UI Elements
     private lateinit var tvScore: TextView
@@ -41,11 +48,37 @@ class QuizActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         btnAnswer3 = findViewById(R.id.btnAnswer3)
         btnAnswer4 = findViewById(R.id.btnAnswer4)
 
-        // Initialize TTS only if setting is enabled
+        // Read Settings
         val sharedPrefs = getSharedPreferences("Settings", Context.MODE_PRIVATE)
         val ttsEnabled = sharedPrefs.getBoolean("tts_enabled", true)
+        hapticsEnabled = sharedPrefs.getBoolean("haptics_enabled", true)
+        highContrast = sharedPrefs.getBoolean("high_contrast", false)
+
         if (ttsEnabled) {
             tts = TextToSpeech(this, this)
+        }
+        
+        // Initialize vibrator
+        vibrator = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            val vibratorManager = getSystemService(Context.VIBRATOR_MANAGER_SERVICE) as VibratorManager
+            vibratorManager.defaultVibrator
+        } else {
+            @Suppress("DEPRECATION")
+            getSystemService(Context.VIBRATOR_SERVICE) as Vibrator
+        }
+
+        // Apply High Contrast UI
+        if (highContrast) {
+            window.decorView.setBackgroundColor(ContextCompat.getColor(this, R.color.hc_background))
+            tvQuestion.setTextColor(ContextCompat.getColor(this, R.color.hc_text))
+            tvScore.setTextColor(ContextCompat.getColor(this, R.color.hc_text))
+        }
+
+        // Retrieve Difficulty
+        val intentDiff = intent.getStringExtra("DIFFICULTY")
+        if (intentDiff != null) {
+            viewModel.difficulty = intentDiff
+            viewModel.generateNextQuestion()
         }
 
         viewModel.score.observe(this) { score ->
@@ -64,8 +97,7 @@ class QuizActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
             resetButtonColors()
 
             if (ttsEnabled && tts != null) {
-                // simple pause for better reading
-                val textToRead = question.text.replace("+", "plus").replace("*", "times")
+                var textToRead = question.text.replace("+", "plus").replace("-", "minus").replace("*", "times")
                 tts?.speak("What is $textToRead", TextToSpeech.QUEUE_FLUSH, null, "")
             }
         }
@@ -83,10 +115,12 @@ class QuizActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
                     view.setBackgroundColor(ContextCompat.getColor(this, R.color.correct_color))
                     tvFeedback.text = getString(R.string.correct_answer)
                     tvFeedback.setTextColor(ContextCompat.getColor(this, R.color.correct_color))
+                    triggerVibration(true)
                 } else {
                     view.setBackgroundColor(ContextCompat.getColor(this, R.color.wrong_color))
                     tvFeedback.text = getString(R.string.wrong_answer)
                     tvFeedback.setTextColor(ContextCompat.getColor(this, R.color.wrong_color))
+                    triggerVibration(false)
                 }
                 tvFeedback.visibility = View.VISIBLE
                 
@@ -97,8 +131,23 @@ class QuizActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         }
     }
     
+    private fun triggerVibration(isCorrect: Boolean) {
+        if (!hapticsEnabled || vibrator == null) return
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            if (isCorrect) {
+                vibrator?.vibrate(VibrationEffect.createOneShot(100, VibrationEffect.DEFAULT_AMPLITUDE))
+            } else {
+                vibrator?.vibrate(VibrationEffect.createWaveform(longArrayOf(0, 100, 50, 100), -1))
+            }
+        } else {
+            @Suppress("DEPRECATION")
+            if (isCorrect) vibrator?.vibrate(100) else vibrator?.vibrate(longArrayOf(0, 100, 50, 100), -1)
+        }
+    }
+    
     private fun resetButtonColors() {
-        val defaultColor = ContextCompat.getColor(this, R.color.primary)
+        val defaultColor = if (highContrast) ContextCompat.getColor(this, R.color.hc_button) 
+                           else ContextCompat.getColor(this, R.color.primary)
         btnAnswer1.setBackgroundColor(defaultColor)
         btnAnswer2.setBackgroundColor(defaultColor)
         btnAnswer3.setBackgroundColor(defaultColor)
@@ -116,9 +165,19 @@ class QuizActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         val sharedPrefs = getSharedPreferences("Scores", Context.MODE_PRIVATE)
         val bestScore = sharedPrefs.getInt("best_score", 0)
         
+        // Save Best Score
         if (currentScore > bestScore) {
             sharedPrefs.edit().putInt("best_score", currentScore).apply()
         }
+        
+        // Save overall stats
+        val totalPlayed = sharedPrefs.getInt("total_played", 0) + viewModel.totalQuestionsAnswered
+        val totalCorrect = sharedPrefs.getInt("total_correct", 0) + viewModel.totalCorrectAnswers
+        
+        sharedPrefs.edit()
+            .putInt("total_played", totalPlayed)
+            .putInt("total_correct", totalCorrect)
+            .apply()
         
         tts?.stop()
         tts?.shutdown()
