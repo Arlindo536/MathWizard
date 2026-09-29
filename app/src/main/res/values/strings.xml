@@ -20,4 +20,14 @@
     <string name="stats_title">Your Statistics</string>
     <string name="stats_played">Total Played: %1$d</string>
     <string name="stats_accuracy">Accuracy: %1$d%%</string>
+
+    <string name="monster_label">Monster</string>
+    <string name="player_label">You</string>
+    <string name="combo_label">🔥 x%1$d COMBO!</string>
+    <string name="damage_label">-%1$d</string>
+    <string name="victory_title">Victory!</string>
+    <string name="defeat_title">Defeated…</string>
+    <string name="final_score_label">Final Score: %1$d</string>
+    <string name="play_again">Play Again</string>
+    <string name="back_to_menu">Back to Menu</string>
 </resources>

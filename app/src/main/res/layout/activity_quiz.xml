@@ -7,40 +7,102 @@
     android:padding="@dimen/padding_large"
     tools:context=".QuizActivity">
 
+    <!-- Monster row -->
+    <TextView
+        android:id="@+id/tvMonsterEmoji"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="36sp"
+        tools:text="👹"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <TextView
+        android:id="@+id/tvMonsterLabel"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="@string/monster_label"
+        android:textSize="13sp"
+        android:textColor="@color/text_color"
+        android:layout_marginStart="8dp"
+        app:layout_constraintTop_toTopOf="@id/tvMonsterEmoji"
+        app:layout_constraintStart_toEndOf="@id/tvMonsterEmoji"
+        app:layout_constraintEnd_toStartOf="@id/tvScore" />
+
+    <ProgressBar
+        android:id="@+id/progressMonster"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="0dp"
+        android:layout_height="14dp"
+        android:max="100"
+        android:progress="100"
+        android:progressDrawable="@drawable/health_bar_monster"
+        android:layout_marginStart="8dp"
+        android:layout_marginTop="2dp"
+        app:layout_constraintTop_toBottomOf="@id/tvMonsterLabel"
+        app:layout_constraintStart_toEndOf="@id/tvMonsterEmoji"
+        app:layout_constraintEnd_toStartOf="@id/tvScore" />
+
     <TextView
         android:id="@+id/tvScore"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         tools:text="Score: 10"
-        android:textSize="20sp"
+        android:textSize="15sp"
         android:textColor="@color/primary"
         android:textStyle="bold"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 
+    <TextView
+        android:id="@+id/tvComboText"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="14sp"
+        android:textStyle="bold"
+        android:textColor="@color/combo_color"
+        android:visibility="invisible"
+        android:layout_marginTop="4dp"
+        tools:text="🔥 x2 COMBO!"
+        app:layout_constraintTop_toBottomOf="@id/tvScore"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <com.google.android.material.card.MaterialCardView
         android:id="@+id/cardQuestion"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="160dp"
         app:cardCornerRadius="16dp"
         app:cardElevation="8dp"
-        android:layout_marginTop="32dp"
-        app:layout_constraintTop_toBottomOf="@id/tvScore"
+        android:layout_marginTop="20dp"
+        app:layout_constraintTop_toBottomOf="@id/progressMonster"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
-        
+
         <TextView
             android:id="@+id/tvQuestion"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             tools:text="What is 5 + 3?"
-            android:textSize="48sp"
+            android:textSize="40sp"
             android:textColor="@color/text_color"
             android:textStyle="bold"
             android:gravity="center" />
-            
+
     </com.google.android.material.card.MaterialCardView>
-        
+
+    <TextView
+        android:id="@+id/tvDamagePopup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="26sp"
+        android:textStyle="bold"
+        android:visibility="invisible"
+        android:layout_marginTop="4dp"
+        tools:text="-18"
+        app:layout_constraintTop_toBottomOf="@id/cardQuestion"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
+
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnAnswer1"
         android:layout_width="0dp"
@@ -92,17 +154,129 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/btnAnswer3"
         app:layout_constraintEnd_toEndOf="parent" />
-        
+
     <TextView
         android:id="@+id/tvFeedback"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textSize="24sp"
+        android:textSize="20sp"
         android:textStyle="bold"
         android:visibility="invisible"
-        app:layout_constraintBottom_toTopOf="@id/btnAnswer1"
+        android:layout_marginBottom="8dp"
+        tools:text="Correct!"
+        app:layout_constraintBottom_toTopOf="@id/progressPlayerRow"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginBottom="32dp"/>
+        app:layout_constraintEnd_toEndOf="parent" />
+
+    <TextView
+        android:id="@+id/tvPlayerLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/player_label"
+        android:textSize="13sp"
+        android:textColor="@color/text_color"
+        android:layout_marginBottom="2dp"
+        app:layout_constraintBottom_toTopOf="@id/progressPlayerRow"
+        app:layout_constraintStart_toStartOf="parent" />
+
+    <FrameLayout
+        android:id="@+id/progressPlayerRow"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="14dp"
+        app:layout_constraintBottom_toTopOf="@id/btnAnswer1">
+
+        <ProgressBar
+            android:id="@+id/progressPlayer"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="14dp"
+            android:max="100"
+            android:progress="100"
+            android:progressDrawable="@drawable/health_bar_player" />
+
+    </FrameLayout>
+
+    <!-- Battle result overlay -->
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/battleResultOverlay"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        android:background="@color/overlay_scrim"
+        android:visibility="gone"
+        android:clickable="true"
+        android:focusable="true"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <TextView
+            android:id="@+id/tvResultEmoji"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="64sp"
+            tools:text="🏆"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toTopOf="@id/tvResultTitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintVertical_chainStyle="packed" />
+
+        <TextView
+            android:id="@+id/tvResultTitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="16dp"
+            tools:text="Victory!"
+            app:layout_constraintTop_toBottomOf="@id/tvResultEmoji"
+            app:layout_constraintBottom_toTopOf="@id/tvResultSubtitle"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <TextView
+            android:id="@+id/tvResultSubtitle"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textSize="16sp"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="8dp"
+            tools:text="Final Score: 120"
+            app:layout_constraintTop_toBottomOf="@id/tvResultTitle"
+            app:layout_constraintBottom_toTopOf="@id/btnPlayAgain"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnPlayAgain"
+            android:layout_width="220dp"
+            android:layout_height="56dp"
+            android:text="@string/play_again"
+            android:layout_marginTop="32dp"
+            app:cornerRadius="@dimen/button_corner_radius"
+            app:layout_constraintTop_toBottomOf="@id/tvResultSubtitle"
+            app:layout_constraintBottom_toTopOf="@id/btnBackToMenu"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btnBackToMenu"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="220dp"
+            android:layout_height="56dp"
+            android:text="@string/back_to_menu"
+            android:textColor="@android:color/white"
+            android:layout_marginTop="12dp"
+            app:strokeColor="@android:color/white"
+            app:cornerRadius="@dimen/button_corner_radius"
+            app:layout_constraintTop_toBottomOf="@id/btnPlayAgain"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintEnd_toEndOf="parent" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

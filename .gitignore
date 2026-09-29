@@ -1,0 +1,22 @@
+# Local configuration (machine-specific SDK path)
+local.properties
+
+# Signing secrets — never commit these
+keystore.properties
+*.jks
+*.keystore
+
+# Gradle
+.gradle/
+build/
+app/build/
+*.apk
+*.aab
+
+# Android Studio / IntelliJ
+.idea/
+*.iml
+.DS_Store
+captures/
+.externalNativeBuild/
+.cxx/
