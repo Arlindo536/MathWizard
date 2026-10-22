@@ -6,6 +6,7 @@ data class EnemyType(
     val school: School,
     val hpFactor: Double,
     val damageFactor: Double,
+    val boss: Boolean = false,
 )
 
 data class Enemy(val type: EnemyType, val maxHp: Int, val hp: Int) {
@@ -20,7 +21,11 @@ object Bestiary {
         EnemyType("flame_wisp", School.ARITHMETIC, hpFactor = 0.9, damageFactor = 1.3),
         EnemyType("magma_golem", School.ARITHMETIC, hpFactor = 1.3, damageFactor = 1.1),
         EnemyType("blaze_hound", School.ARITHMETIC, hpFactor = 0.95, damageFactor = 1.2),
+        EnemyType("inferno_drake", School.ARITHMETIC, hpFactor = 1.0, damageFactor = 1.0, boss = true),
     )
 
-    fun forSchool(school: School): List<EnemyType> = all.filter { it.school == school }
+    /** Regular (non-boss) enemies of a school. */
+    fun forSchool(school: School): List<EnemyType> = all.filter { it.school == school && !it.boss }
+
+    fun bossFor(school: School): EnemyType = all.first { it.school == school && it.boss }
 }

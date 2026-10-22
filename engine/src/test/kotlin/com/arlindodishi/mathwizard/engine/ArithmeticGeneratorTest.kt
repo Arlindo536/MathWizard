@@ -108,3 +108,28 @@ class ArithmeticGeneratorTest {
         assertNotEquals("", p.answer)
     }
 }
+
+class ArithmeticBossTest {
+
+    private fun bosses(d: Int) = (0 until 300).map { Problems.generate(School.ARITHMETIC, d, Seeds.mix(d.toLong(), it.toLong(), 77L), boss = true) }
+
+    private fun operatorCount(prompt: String) = prompt.count { it in "+−×÷" }
+
+    @Test
+    fun bossProblemsAreCorrectAndMultiStepAtEveryLevel() {
+        for (d in MIN_DIFFICULTY..MAX_DIFFICULTY step 5) {
+            bosses(d).forEach { p ->
+                assertEquals(ExpressionEvaluator.evaluate(p.prompt).toString(), p.answer, p.prompt)
+                assertTrue(operatorCount(p.prompt) >= 2, "single step boss problem ${p.prompt}")
+                assertEquals(CHOICE_COUNT, p.choices.toSet().size, p.toString())
+                assertTrue(p.answer in p.choices)
+                assertTrue(p.choices.all { (it.toIntOrNull() ?: -1) >= 0 }, p.toString())
+            }
+        }
+    }
+
+    @Test
+    fun lowLevelBossesAvoidMultiplication() {
+        bosses(10).forEach { assertTrue(ArithmeticGenerator.TIMES !in it.prompt, it.prompt) }
+    }
+}

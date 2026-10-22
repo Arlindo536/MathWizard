@@ -70,6 +70,7 @@ fun SummaryScreen(ui: RunUiState, onAgain: () -> Unit, onHome: () -> Unit) {
             Stat(stringResource(R.string.summary_spells), stats.correct.toString())
             Stat(stringResource(R.string.summary_accuracy), "${(stats.accuracy * 100).roundToInt()}%")
             Stat(stringResource(R.string.summary_best_streak), stats.bestStreak.toString())
+            Stat(stringResource(R.string.summary_bosses), stats.bossesDefeated.toString())
         }
         Spacer(Modifier.height(Spacing.xl))
         Button(onClick = onAgain, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().height(56.dp)) {

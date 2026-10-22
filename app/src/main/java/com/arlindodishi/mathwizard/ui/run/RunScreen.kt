@@ -9,6 +9,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -22,6 +23,7 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
@@ -110,7 +112,7 @@ fun RunRoute(onExit: () -> Unit) {
 }
 
 @Composable
-fun RunScreen(ui: RunUiState, onChoose: (String) -> Unit, onContinue: () -> Unit) {
+fun RunScreen(ui: RunUiState, onChoose: (String) -> Unit, onContinue: (String?) -> Unit) {
     val run = ui.run
     val feedback = ui.feedback
     val accent = run.problem.school.accent()
@@ -148,8 +150,9 @@ fun RunScreen(ui: RunUiState, onChoose: (String) -> Unit, onContinue: () -> Unit
                 .safeDrawingPadding()
                 .padding(horizontal = Spacing.m, vertical = Spacing.s),
         ) {
-            TopBar(run.floor, run.playerHp, run.playerMaxHp, ui.timeLeftMillis, run.timeLimitMillis)
-            Spacer(Modifier.height(Spacing.l))
+            TopBar(run.floor, run.isBossFloor, run.playerHp, run.playerMaxHp, ui.timeLeftMillis, run.timeLimitMillis)
+            RelicRow(run.relics.map { it.id })
+            Spacer(Modifier.height(Spacing.s))
             EnemyPanel(ui, accent, enemyShake.value, Modifier.weight(1f).fillMaxWidth())
             Spacer(Modifier.height(Spacing.m))
             ProblemCard(feedback?.outcome?.problem ?: run.problem, feedback, accent, onChoose)
@@ -167,7 +170,12 @@ fun RunScreen(ui: RunUiState, onChoose: (String) -> Unit, onContinue: () -> Unit
             enter = fadeIn(),
             exit = fadeOut(),
         ) {
-            FloorClearedOverlay(run.floor, healed = minOf(Balance.FLOOR_HEAL, run.playerMaxHp - run.playerHp), onContinue)
+            RelicChoiceOverlay(
+                bossCleared = run.isBossFloor,
+                floor = run.floor,
+                offer = run.relicOffer.map { it.id },
+                onPick = onContinue,
+            )
         }
     }
 }
@@ -179,13 +187,13 @@ private suspend fun shake(anim: Animatable<Float, *>, amplitude: Float) {
 }
 
 @Composable
-private fun TopBar(floor: Int, hp: Int, maxHp: Int, timeLeft: Long, timeLimit: Long) {
+private fun TopBar(floor: Int, boss: Boolean, hp: Int, maxHp: Int, timeLeft: Long, timeLimit: Long) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                stringResource(R.string.run_floor, floor),
+                stringResource(if (boss) R.string.run_floor_boss else R.string.run_floor, floor),
                 style = MaterialTheme.typography.headlineMedium,
-                color = SpireColors.Text,
+                color = if (boss) SpireColors.Gold else SpireColors.Text,
                 modifier = Modifier.weight(1f),
             )
             Text(
@@ -204,6 +212,32 @@ private fun TopBar(floor: Int, hp: Int, maxHp: Int, timeLeft: Long, timeLimit: L
             height = 6.dp,
             animate = false,
         )
+    }
+}
+
+/** Held relics as a row of small icons under the top bar. */
+@Composable
+private fun RelicRow(relicIds: List<String>) {
+    if (relicIds.isEmpty()) return
+    Row(
+        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+        modifier = Modifier.padding(top = Spacing.s),
+    ) {
+        relicIds.forEach { id ->
+            val relic = relicUi(id)
+            val name = stringResource(relic.name)
+            Box(
+                Modifier
+                    .size(30.dp)
+                    .clip(CircleShape)
+                    .background(SpireColors.Surface)
+                    .border(1.dp, SpireColors.Outline, CircleShape)
+                    .semantics { contentDescription = name },
+                contentAlignment = Alignment.Center,
+            ) {
+                Text(relic.emoji, style = MaterialTheme.typography.bodyMedium)
+            }
+        }
     }
 }
 
@@ -234,15 +268,22 @@ private fun EnemyPanel(ui: RunUiState, accent: Color, shakeX: Float, modifier: M
         Box(contentAlignment = Alignment.Center) {
             EnemyArt(
                 enemyId = enemy.type.id,
-                accent = accent,
+                accent = if (enemy.type.boss) SpireColors.Gold else accent,
                 defeated = enemy.defeated,
                 modifier = Modifier
-                    .size(180.dp)
+                    .size(if (enemy.type.boss) 220.dp else 180.dp)
                     .offset { IntOffset(shakeX.roundToInt(), 0) },
             )
             DamagePopup(ui)
         }
         Spacer(Modifier.height(Spacing.m))
+        if (enemy.type.boss) {
+            Text(
+                stringResource(R.string.run_boss).uppercase(),
+                style = MaterialTheme.typography.labelLarge,
+                color = SpireColors.Gold,
+            )
+        }
         Text(
             stringResource(enemyNameRes(enemy.type.id)),
             style = MaterialTheme.typography.titleLarge,
@@ -258,7 +299,7 @@ private fun EnemyPanel(ui: RunUiState, accent: Color, shakeX: Float, modifier: M
             style = MaterialTheme.typography.labelMedium,
             color = SpireColors.TextMuted,
         )
-        val streakCombo = Balance.comboMultiplier(ui.run.streak)
+        val streakCombo = Balance.comboMultiplier(ui.run.streak, ui.comboShift)
         Text(
             text = if (streakCombo > 1.0) stringResource(R.string.run_combo, streakCombo.toString()) else "",
             style = MaterialTheme.typography.labelLarge,
@@ -276,7 +317,7 @@ private fun BoxScope.DamagePopup(ui: RunUiState) {
     LaunchedEffect(ui.answerCount) { rise.animateTo(1f, tween(RunViewModel.FEEDBACK_MILLIS.toInt())) }
     val (text, color) = when (outcome) {
         is AnswerOutcome.Hit -> "-${outcome.damage}" to if (outcome.fast) SpireColors.Gold else SpireColors.Text
-        is AnswerOutcome.Miss -> "-${outcome.damageTaken} HP" to SpireColors.Danger
+        is AnswerOutcome.Miss -> if (outcome.shielded) "0" to SpireColors.PlayerHp else "-${outcome.damageTaken} HP" to SpireColors.Danger
     }
     Column(
         Modifier
@@ -286,12 +327,18 @@ private fun BoxScope.DamagePopup(ui: RunUiState) {
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(text, style = MaterialTheme.typography.displayMedium, color = color)
-        val label = when {
-            outcome is AnswerOutcome.Hit && outcome.fast -> stringResource(R.string.run_fast)
-            outcome is AnswerOutcome.Miss && outcome.timedOut -> stringResource(R.string.run_time_up)
-            else -> null
+        val labels = buildList {
+            if (outcome is AnswerOutcome.Hit && outcome.fast) add(stringResource(R.string.run_fast) to color)
+            if (outcome is AnswerOutcome.Hit && outcome.healed > 0) {
+                add(stringResource(R.string.run_healed, outcome.healed) to SpireColors.PlayerHp)
+            }
+            if (outcome is AnswerOutcome.Miss && outcome.timedOut) add(stringResource(R.string.run_time_up) to color)
+            if (outcome is AnswerOutcome.Miss && outcome.shielded) add(stringResource(R.string.run_shielded) to color)
+            if (outcome is AnswerOutcome.Miss && outcome.revived) add(stringResource(R.string.run_revived) to SpireColors.Gold)
         }
-        if (label != null) Text(label, style = MaterialTheme.typography.labelLarge, color = color)
+        labels.forEach { (label, labelColor) ->
+            Text(label, style = MaterialTheme.typography.labelLarge, color = labelColor)
+        }
     }
 }
 
@@ -365,32 +412,59 @@ private fun ChoiceButton(
 }
 
 @Composable
-private fun FloorClearedOverlay(floor: Int, healed: Int, onContinue: () -> Unit) {
+private fun RelicChoiceOverlay(bossCleared: Boolean, floor: Int, offer: List<String>, onPick: (String?) -> Unit) {
     Box(
         Modifier
             .fillMaxSize()
-            .background(SpireColors.Night.copy(alpha = 0.85f)),
+            .background(SpireColors.Night.copy(alpha = 0.92f))
+            .safeDrawingPadding(),
         contentAlignment = Alignment.Center,
     ) {
-        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(Spacing.xl)) {
+        Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(Spacing.l)) {
             Text(
-                stringResource(R.string.floor_cleared_title, floor),
-                style = MaterialTheme.typography.displayMedium,
+                if (bossCleared) stringResource(R.string.boss_cleared_title) else stringResource(R.string.floor_cleared_title, floor),
+                style = MaterialTheme.typography.headlineMedium,
                 color = SpireColors.Gold,
                 textAlign = TextAlign.Center,
             )
-            if (healed > 0) {
+            Spacer(Modifier.height(Spacing.xs))
+            Text(
+                if (offer.isEmpty()) stringResource(R.string.relic_none) else stringResource(R.string.relic_choose_title),
+                style = MaterialTheme.typography.titleMedium,
+                color = SpireColors.TextMuted,
+            )
+            Spacer(Modifier.height(Spacing.l))
+            offer.forEach { id ->
+                RelicCard(id, onClick = { onPick(id) })
                 Spacer(Modifier.height(Spacing.s))
-                Text(
-                    stringResource(R.string.floor_cleared_heal, healed),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = SpireColors.PlayerHp,
-                )
             }
-            Spacer(Modifier.height(Spacing.xl))
-            Button(onClick = onContinue, shape = RoundedCornerShape(14.dp), modifier = Modifier.height(56.dp)) {
-                Text(stringResource(R.string.floor_continue), style = MaterialTheme.typography.titleLarge)
+            if (offer.isEmpty()) {
+                Button(onClick = { onPick(null) }, shape = RoundedCornerShape(14.dp), modifier = Modifier.height(56.dp)) {
+                    Text(stringResource(R.string.floor_continue), style = MaterialTheme.typography.titleLarge)
+                }
             }
+        }
+    }
+}
+
+@Composable
+private fun RelicCard(id: String, onClick: () -> Unit) {
+    val relic = relicUi(id)
+    Row(
+        Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(16.dp))
+            .background(SpireColors.Surface)
+            .border(1.dp, SpireColors.Gold.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
+            .clickable(onClick = onClick)
+            .padding(Spacing.m),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(relic.emoji, style = MaterialTheme.typography.displayMedium)
+        Spacer(Modifier.width(Spacing.m))
+        Column {
+            Text(stringResource(relic.name), style = MaterialTheme.typography.titleLarge, color = SpireColors.Text)
+            Text(stringResource(relic.description), style = MaterialTheme.typography.bodyMedium, color = SpireColors.TextMuted)
         }
     }
 }
@@ -417,6 +491,7 @@ private fun enemyEmoji(id: String): String = when (id) {
     "flame_wisp" -> "🔥"    // 🔥
     "magma_golem" -> "🪨"   // 🪨
     "blaze_hound" -> "🐺"   // 🐺
+    "inferno_drake" -> "🐉" // 🐉
     "wizard" -> "🧙"        // 🧙
     else -> "👾"            // 👾
 }
@@ -428,5 +503,6 @@ fun enemyNameRes(id: String): Int = when (id) {
     "flame_wisp" -> R.string.enemy_flame_wisp
     "magma_golem" -> R.string.enemy_magma_golem
     "blaze_hound" -> R.string.enemy_blaze_hound
+    "inferno_drake" -> R.string.enemy_inferno_drake
     else -> R.string.monster_label
 }

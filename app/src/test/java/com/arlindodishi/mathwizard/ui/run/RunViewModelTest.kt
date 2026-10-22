@@ -118,6 +118,20 @@ class RunViewModelTest {
     }
 
     @Test
+    fun pickingRelicFromOfferAddsItAndAdvances() = runTest(dispatcher) {
+        val vm = newViewModel()
+        while (vm.ui.value.run.phase == Phase.FIGHTING) {
+            vm.answerCorrectly()
+            finishFeedback()
+        }
+        val offer = vm.ui.value.run.relicOffer
+        assertEquals(3, offer.size)
+        vm.continueToNextFloor(offer[1].id)
+        assertEquals(listOf(offer[1]), vm.ui.value.run.relics)
+        assertEquals(2, vm.ui.value.run.floor)
+    }
+
+    @Test
     fun gameOverRecordsRunOnceAndRestartBeginsFresh() = runTest(dispatcher) {
         val vm = newViewModel()
         while (vm.ui.value.run.phase != Phase.GAME_OVER) {

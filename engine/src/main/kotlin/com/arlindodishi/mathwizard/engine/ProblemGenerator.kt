@@ -12,6 +12,10 @@ interface ProblemGenerator {
 
     /** [difficulty] is in [MIN_DIFFICULTY]..[MAX_DIFFICULTY]. */
     fun generate(difficulty: Int, random: Random): Problem
+
+    /** A harder, multi-step problem for boss floors. Defaults to a +20 difficulty problem. */
+    fun generateBoss(difficulty: Int, random: Random): Problem =
+        generate((difficulty + 20).coerceAtMost(MAX_DIFFICULTY), random)
 }
 
 object Problems {
@@ -21,9 +25,10 @@ object Problems {
 
     val availableSchools: Set<School> get() = generators.keys
 
-    fun generate(school: School, difficulty: Int, seed: Long): Problem {
+    fun generate(school: School, difficulty: Int, seed: Long, boss: Boolean = false): Problem {
         val generator = requireNotNull(generators[school]) { "No generator for $school yet" }
-        return generator.generate(difficulty.coerceIn(MIN_DIFFICULTY, MAX_DIFFICULTY), Random(seed))
+        val d = difficulty.coerceIn(MIN_DIFFICULTY, MAX_DIFFICULTY)
+        return if (boss) generator.generateBoss(d, Random(seed)) else generator.generate(d, Random(seed))
     }
 }
 

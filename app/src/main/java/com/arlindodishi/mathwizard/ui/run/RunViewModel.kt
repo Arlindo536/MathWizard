@@ -33,6 +33,8 @@ data class RunUiState(
     val answerCount: Int = 0,
     val bestFloor: Int = 0,
     val newRecord: Boolean = false,
+    /** Combo thresholds shift from relics (Combo Crown), for the HUD. */
+    val comboShift: Int = 0,
 )
 
 class RunViewModel(
@@ -72,11 +74,18 @@ class RunViewModel(
         onOutcome(engine.answer(choice, elapsed()), chosen = choice)
     }
 
-    fun continueToNextFloor() {
+    /** Leaves a cleared floor taking [relicId] (must be on offer), or none when nothing is offered. */
+    fun continueToNextFloor(relicId: String? = null) {
         if (_ui.value.run.phase != Phase.FLOOR_CLEARED || _ui.value.feedback != null) return
-        engine.nextFloor()
+        engine.nextFloor(relicId)
         startProblemTimer()
-        _ui.update { it.copy(run = engine.state, timeLeftMillis = engine.state.timeLimitMillis) }
+        _ui.update {
+            it.copy(
+                run = engine.state,
+                timeLeftMillis = engine.state.timeLimitMillis,
+                comboShift = engine.currentModifiers.comboThresholdShift,
+            )
+        }
     }
 
     fun restart() {

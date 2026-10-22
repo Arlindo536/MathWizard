@@ -67,4 +67,40 @@
     <string name="enemy_flame_wisp">Flame Wisp</string>
     <string name="enemy_magma_golem">Magma Golem</string>
     <string name="enemy_blaze_hound">Blaze Hound</string>
+
+    <!-- Relics and bosses -->
+    <string name="relic_choose_title">Choose a relic</string>
+    <string name="relic_none">You already hold every relic.</string>
+    <string name="run_floor_boss">Floor %1$d · Boss</string>
+    <string name="run_boss">Boss</string>
+    <string name="run_shielded">Shielded!</string>
+    <string name="run_revived">Phoenix rises!</string>
+    <string name="run_healed">+%1$d HP</string>
+    <string name="boss_cleared_title">Boss defeated!</string>
+    <string name="summary_bosses">Bosses</string>
+    <string name="enemy_inferno_drake">Inferno Drake</string>
+    <string name="relic_ember_focus">Ember Focus</string>
+    <string name="relic_ember_focus_desc" formatted="false">Spells deal 20% more damage.</string>
+    <string name="relic_quicksilver_quill">Quicksilver Quill</string>
+    <string name="relic_quicksilver_quill_desc" formatted="false">25% more time for every problem.</string>
+    <string name="relic_heartstone">Heartstone</string>
+    <string name="relic_heartstone_desc">+25 max HP.</string>
+    <string name="relic_healing_draught">Healing Draught</string>
+    <string name="relic_healing_draught_desc">Heal 15 more HP after each floor.</string>
+    <string name="relic_iron_ward">Iron Ward</string>
+    <string name="relic_iron_ward_desc" formatted="false">Enemies hit 25% softer.</string>
+    <string name="relic_swift_sigil">Swift Sigil</string>
+    <string name="relic_swift_sigil_desc">Swift-cast bonuses last longer.</string>
+    <string name="relic_combo_crown">Combo Crown</string>
+    <string name="relic_combo_crown_desc">Combos start one answer earlier.</string>
+    <string name="relic_mana_shield">Mana Shield</string>
+    <string name="relic_mana_shield_desc">The first miss on each floor does no damage.</string>
+    <string name="relic_vampiric_rune">Vampiric Rune</string>
+    <string name="relic_vampiric_rune_desc">Heal 3 HP with every correct answer.</string>
+    <string name="relic_oracle_eye">Oracle Eye</string>
+    <string name="relic_oracle_eye_desc">One wrong answer is always hidden.</string>
+    <string name="relic_phoenix_feather">Phoenix Feather</string>
+    <string name="relic_phoenix_feather_desc">Once per climb, survive a fatal hit with 30 HP.</string>
+    <string name="relic_giant_slayer">Giant Slayer</string>
+    <string name="relic_giant_slayer_desc" formatted="false">Deal 50% more damage to bosses.</string>
 </resources>

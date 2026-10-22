@@ -85,12 +85,14 @@ class RunEngineTest {
     }
 
     @Test
-    fun floorTakesThreeToSixAnswersAtModerateSpeed() {
+    fun floorTakesThreeToSixAnswersAtModerateSpeedAndBossesUpToNine() {
         for (seed in 1L..50L) {
             val e = engine(seed)
-            repeat(30) { floor ->
+            repeat(30) {
+                val floor = e.state.floor
                 val answers = e.clearFloor()
-                assertTrue(answers in 3..6, "seed $seed floor ${floor + 1}: $answers answers")
+                val range = if (Balance.isBossFloor(floor)) 4..9 else 3..6
+                assertTrue(answers in range, "seed $seed floor $floor: $answers answers")
                 e.nextFloor()
             }
         }

@@ -95,3 +95,14 @@ Pure Kotlin module `:engine`, no Android dependencies, tested with `./gradlew :e
   DataStore arrive in step 5. Old Classic Duel, Statistics and Settings screens are still
   the XML Activities, opened from Home.
 - Strings for the new screens exist in English and Albanian (`values-sq`).
+
+## 6. Relics and bosses (step 4)
+
+- `Relic` is plain data (multipliers, bonuses, flags); `Relics.all` holds 12, `Modifiers.of(relics)`
+  folds them. After every cleared floor the player picks 1 of 3 unheld relics (seeded per floor);
+  `RunEngine.nextFloor(relicId)` applies it.
+- Every 5th floor is a boss (`Bestiary.bossFor(school)`): HP ×1.5, hits ×1.25, timer ×1.5, and
+  `ProblemGenerator.generateBoss` gives multi-step problems (three-term sums below 35, a × b ± c
+  up to 75, then a × b + c × d or two-step forms). A boss takes 4-9 answers at moderate speed.
+- Test builds are release builds signed with the owner's key (same certificate as the v1.0 APK,
+  so they install over it). `versionCode` follows the step number for now.

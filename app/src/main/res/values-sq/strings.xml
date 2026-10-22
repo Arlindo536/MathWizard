@@ -66,4 +66,40 @@
     <string name="enemy_flame_wisp">Shpirti i Flakës</string>
     <string name="enemy_magma_golem">Golemi i Magmës</string>
     <string name="enemy_blaze_hound">Zagari i Zjarrit</string>
+
+    <!-- Relics and bosses -->
+    <string name="relic_choose_title">Zgjidh një relike</string>
+    <string name="relic_none">I ke tashmë të gjitha reliket.</string>
+    <string name="run_floor_boss">Kati %1$d · Boss</string>
+    <string name="run_boss">Boss</string>
+    <string name="run_shielded">Mburoja të mbrojti!</string>
+    <string name="run_revived">Feniksi ngrihet!</string>
+    <string name="run_healed">+%1$d HP</string>
+    <string name="boss_cleared_title">Boss-i u mposht!</string>
+    <string name="summary_bosses">Boss-ë</string>
+    <string name="enemy_inferno_drake">Dragoi i Ferrit</string>
+    <string name="relic_ember_focus">Fokusi i Prushit</string>
+    <string name="relic_ember_focus_desc" formatted="false">Magjitë godasin 20% më fort.</string>
+    <string name="relic_quicksilver_quill">Penda e Merkurit</string>
+    <string name="relic_quicksilver_quill_desc" formatted="false">25% më shumë kohë për çdo problem.</string>
+    <string name="relic_heartstone">Guri i Zemrës</string>
+    <string name="relic_heartstone_desc">+25 HP maksimale.</string>
+    <string name="relic_healing_draught">Ilaçi Shërues</string>
+    <string name="relic_healing_draught_desc">Shërohesh 15 HP më shumë pas çdo kati.</string>
+    <string name="relic_iron_ward">Mburoja e Hekurt</string>
+    <string name="relic_iron_ward_desc" formatted="false">Armiqtë godasin 25% më butë.</string>
+    <string name="relic_swift_sigil">Vula e Shpejtësisë</string>
+    <string name="relic_swift_sigil_desc">Bonuset e shpejtësisë zgjasin më shumë.</string>
+    <string name="relic_combo_crown">Kurora e Kombos</string>
+    <string name="relic_combo_crown_desc">Kombo nis një përgjigje më herët.</string>
+    <string name="relic_mana_shield">Mburoja e Manës</string>
+    <string name="relic_mana_shield_desc">Gabimi i parë në çdo kat nuk të dëmton.</string>
+    <string name="relic_vampiric_rune">Runa Vampire</string>
+    <string name="relic_vampiric_rune_desc">Shërohesh 3 HP me çdo përgjigje të saktë.</string>
+    <string name="relic_oracle_eye">Syri i Orakullit</string>
+    <string name="relic_oracle_eye_desc">Një përgjigje e gabuar fshihet gjithmonë.</string>
+    <string name="relic_phoenix_feather">Pendë Feniksi</string>
+    <string name="relic_phoenix_feather_desc">Një herë në ngjitje, i mbijeton një goditjeje vdekjeprurëse me 30 HP.</string>
+    <string name="relic_giant_slayer">Vrasësi i Gjigantëve</string>
+    <string name="relic_giant_slayer_desc" formatted="false">Godet boss-ët 50% më fort.</string>
 </resources>

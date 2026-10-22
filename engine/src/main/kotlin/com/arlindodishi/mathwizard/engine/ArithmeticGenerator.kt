@@ -38,6 +38,56 @@ object ArithmeticGenerator : ProblemGenerator {
         )
     }
 
+    /**
+     * Boss problems always have at least two operations: three-term sums below 35,
+     * a × b ± c up to 75, then two products (a × b + c × d) or the regular two-step forms.
+     */
+    override fun generateBoss(difficulty: Int, random: Random): Problem {
+        val d = difficulty.coerceIn(MIN_DIFFICULTY, MAX_DIFFICULTY)
+        val draft = when {
+            d < 35 -> threeTerms(d, random)
+            d < 75 -> productPlusMinus(d, random)
+            random.nextBoolean() -> twoProducts(d, random)
+            else -> twoStep(d, random)
+        }
+        return Problem(
+            school = school,
+            difficulty = d,
+            prompt = draft.prompt,
+            answer = draft.answer.toString(),
+            choices = buildIntChoices(draft.answer, draft.candidates + commonSlips(draft.answer), random),
+        )
+    }
+
+    private fun threeTerms(d: Int, random: Random): Draft {
+        val max = addMax(d) + 3
+        val a = operand(max, random)
+        val b = operand(max, random)
+        val c = operand(max, random)
+        return if (random.nextBoolean() && a + b > c) {
+            Draft("$a $PLUS $b $MINUS $c", a + b - c, listOf(a + b + c, a - b + c))
+        } else {
+            Draft("$a $PLUS $b $PLUS $c", a + b + c, listOf(a + b, b + c, a + c))
+        }
+    }
+
+    private fun productPlusMinus(d: Int, random: Random): Draft {
+        val (a, b) = factors(d.coerceAtLeast(35), random)
+        val c = random.nextInt(2, addMax(d) / 2 + 3)
+        return if (random.nextBoolean() && a * b > c) {
+            Draft("$a $TIMES $b $MINUS $c", a * b - c, listOf(a * (b - c), a * b + c, a + b - c))
+        } else {
+            Draft("$a $TIMES $b $PLUS $c", a * b + c, listOf(a * (b + c), a + b + c, a * b - c))
+        }
+    }
+
+    private fun twoProducts(d: Int, random: Random): Draft {
+        val (a, b) = factors(d, random)
+        val (c, e) = factors(d - 20, random)
+        val answer = a * b + c * e
+        return Draft("$a $TIMES $b $PLUS $c $TIMES $e", answer, listOf((a * b + c) * e, a * (b + c) * e, a * b + c + e))
+    }
+
     private data class Draft(val prompt: String, val answer: Int, val candidates: List<Int>)
 
     /** Largest operand for + and −: 5 at d=0, 20 at d=30, 100 at d=70, 490 at d=100. */
