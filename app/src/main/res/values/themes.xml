@@ -16,4 +16,9 @@
         
         <item name="android:windowBackground">@color/background</item>
     </style>
+
+    <!-- Compose screens: dark window so there is no white flash before the first frame. -->
+    <style name="Theme.MathWizard.Spire">
+        <item name="android:windowBackground">@color/spire_night</item>
+    </style>
 </resources>

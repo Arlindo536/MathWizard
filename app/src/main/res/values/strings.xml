@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">Math Wizard</string>
+    <string name="app_name" translatable="false">Math Wizard</string>
     <string name="play">Play Math</string>
     <string name="settings">Settings</string>
     <string name="high_score">Statistics</string>
@@ -30,4 +30,41 @@
     <string name="final_score_label">Final Score: %1$d</string>
     <string name="play_again">Play Again</string>
     <string name="back_to_menu">Back to Menu</string>
+
+    <!-- The Endless Spire -->
+    <string name="spire_title">The Endless Spire</string>
+    <string name="home_climb">Climb the Spire</string>
+    <string name="home_classic">Classic Duel</string>
+    <string name="home_best_floor">Best floor: %1$d</string>
+    <string name="home_runs">Climbs: %1$d</string>
+    <string name="run_floor">Floor %1$d</string>
+    <string name="run_hp">%1$d / %2$d</string>
+    <string name="run_time_up">Time\'s up!</string>
+    <string name="run_fast">Swift cast!</string>
+    <string name="run_combo">Combo ×%1$s</string>
+    <string name="run_answer_was">Answer: %1$s</string>
+    <string name="run_answer_cd">Answer %1$s</string>
+    <string name="run_leave_title">Abandon this climb?</string>
+    <string name="run_leave_body">Your progress on this run will be lost.</string>
+    <string name="run_leave_confirm">Abandon</string>
+    <string name="run_leave_cancel">Keep climbing</string>
+    <string name="floor_cleared_title">Floor %1$d cleared!</string>
+    <string name="floor_cleared_heal">+%1$d HP restored</string>
+    <string name="floor_continue">Climb on</string>
+    <string name="summary_title">The spire claims you</string>
+    <string name="summary_floor">Floor reached</string>
+    <string name="summary_new_record">New record!</string>
+    <string name="summary_best">Best: floor %1$d</string>
+    <string name="summary_spells">Spells cast</string>
+    <string name="summary_accuracy">Accuracy</string>
+    <string name="summary_best_streak">Best streak</string>
+    <string name="summary_again">Climb again</string>
+    <string name="summary_home">Home</string>
+
+    <string name="enemy_ember_imp">Ember Imp</string>
+    <string name="enemy_cinder_slime">Cinder Slime</string>
+    <string name="enemy_ash_goblin">Ash Goblin</string>
+    <string name="enemy_flame_wisp">Flame Wisp</string>
+    <string name="enemy_magma_golem">Magma Golem</string>
+    <string name="enemy_blaze_hound">Blaze Hound</string>
 </resources>

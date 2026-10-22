@@ -1,26 +1,16 @@
 package com.arlindodishi.mathwizard
 
-import android.content.Intent
 import android.os.Bundle
-import android.widget.Button
-import androidx.appcompat.app.AppCompatActivity
+import androidx.activity.ComponentActivity
+import androidx.activity.compose.setContent
+import androidx.activity.enableEdgeToEdge
+import com.arlindodishi.mathwizard.ui.MathWizardApp
 
-class MainActivity : AppCompatActivity() {
+class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        enableEdgeToEdge()
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
-        findViewById<Button>(R.id.btnPlay).setOnClickListener {
-            startActivity(Intent(this, DifficultyActivity::class.java))
-        }
-
-        findViewById<Button>(R.id.btnSettings).setOnClickListener {
-            startActivity(Intent(this, SettingsActivity::class.java))
-        }
-
-        findViewById<Button>(R.id.btnHighScore).setOnClickListener {
-            startActivity(Intent(this, HighScoreActivity::class.java))
-        }
+        setContent { MathWizardApp() }
     }
 }

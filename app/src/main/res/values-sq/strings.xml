@@ -1,0 +1,69 @@
+<resources>
+    <string name="play">Luaj Matematikë</string>
+    <string name="settings">Cilësimet</string>
+    <string name="high_score">Statistikat</string>
+    <string name="score_label">Pikët: %1$d</string>
+    <string name="best_score_label">Rezultati më i mirë: %1$d</string>
+    <string name="toggle_tts">Aktivizo leximin me zë</string>
+    <string name="toggle_haptics">Aktivizo dridhjet</string>
+    <string name="toggle_high_contrast">Kontrast i lartë</string>
+    <string name="reset_score">Rivendos statistikat</string>
+    <string name="correct_answer">Saktë!</string>
+    <string name="wrong_answer">Gabim. Provo përsëri!</string>
+
+    <string name="difficulty_title">Zgjidh vështirësinë</string>
+    <string name="diff_easy">E lehtë (Mbledhje 1-10)</string>
+    <string name="diff_med">Mesatare (Mbledhje/Zbritje 1-20)</string>
+    <string name="diff_hard">E vështirë (Shumëzim)</string>
+
+    <string name="stats_title">Statistikat e tua</string>
+    <string name="stats_played">Gjithsej të luajtura: %1$d</string>
+    <string name="stats_accuracy">Saktësia: %1$d%%</string>
+
+    <string name="monster_label">Përbindëshi</string>
+    <string name="player_label">Ti</string>
+    <string name="combo_label">🔥 x%1$d KOMBO!</string>
+    <string name="damage_label">-%1$d</string>
+    <string name="victory_title">Fitore!</string>
+    <string name="defeat_title">U mposhte…</string>
+    <string name="final_score_label">Rezultati përfundimtar: %1$d</string>
+    <string name="play_again">Luaj përsëri</string>
+    <string name="back_to_menu">Kthehu te menyja</string>
+
+    <!-- The Endless Spire -->
+    <string name="spire_title">Kulla e Pafund</string>
+    <string name="home_climb">Ngjitu në Kullë</string>
+    <string name="home_classic">Duel Klasik</string>
+    <string name="home_best_floor">Kati më i lartë: %1$d</string>
+    <string name="home_runs">Ngjitje: %1$d</string>
+    <string name="run_floor">Kati %1$d</string>
+    <string name="run_hp">%1$d / %2$d</string>
+    <string name="run_time_up">Mbaroi koha!</string>
+    <string name="run_fast">Magji e shpejtë!</string>
+    <string name="run_combo">Kombo ×%1$s</string>
+    <string name="run_answer_was">Përgjigjja: %1$s</string>
+    <string name="run_answer_cd">Përgjigjja %1$s</string>
+    <string name="run_leave_title">Ta braktisësh ngjitjen?</string>
+    <string name="run_leave_body">Përparimi i kësaj ngjitjeje do të humbasë.</string>
+    <string name="run_leave_confirm">Braktise</string>
+    <string name="run_leave_cancel">Vazhdo ngjitjen</string>
+    <string name="floor_cleared_title">Kati %1$d u pastrua!</string>
+    <string name="floor_cleared_heal">+%1$d HP u rikthyen</string>
+    <string name="floor_continue">Vazhdo lart</string>
+    <string name="summary_title">Kulla të mposhti</string>
+    <string name="summary_floor">Kati i arritur</string>
+    <string name="summary_new_record">Rekord i ri!</string>
+    <string name="summary_best">Më i miri: kati %1$d</string>
+    <string name="summary_spells">Magji të hedhura</string>
+    <string name="summary_accuracy">Saktësia</string>
+    <string name="summary_best_streak">Seria më e mirë</string>
+    <string name="summary_again">Ngjitu përsëri</string>
+    <string name="summary_home">Kreu</string>
+
+    <string name="enemy_ember_imp">Djalli i Prushit</string>
+    <string name="enemy_cinder_slime">Llumi i Hirit</string>
+    <string name="enemy_ash_goblin">Goblini i Hirit</string>
+    <string name="enemy_flame_wisp">Shpirti i Flakës</string>
+    <string name="enemy_magma_golem">Golemi i Magmës</string>
+    <string name="enemy_blaze_hound">Zagari i Zjarrit</string>
+</resources>

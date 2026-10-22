@@ -13,6 +13,7 @@
     <color name="combo_color">#FFFFD740</color>
     <color name="health_track">#FFE0E0E0</color>
     <color name="overlay_scrim">#CC000000</color>
+    <color name="spire_night">#FF0B0A1A</color>
     
     <!-- High Contrast Colors -->
     <color name="hc_background">#FF000000</color>

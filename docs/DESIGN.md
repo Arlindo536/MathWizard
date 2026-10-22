@@ -79,3 +79,19 @@ Pure Kotlin module `:engine`, no Android dependencies, tested with `./gradlew :e
 - `AdaptiveDifficulty`: rolling window of the last 8 answers per school. Fast correct
   (≤ half the target time) +3, correct +1, miss −4, two misses in a row an extra −4;
   offset clamped to −20..+15, result never below the floor minimum.
+
+## 5. Run loop (step 3)
+
+- Engine: `RunEngine(RunConfig)` owns one climb; `answer(choice, elapsedMillis)`, `timeOut()`,
+  `nextFloor()`. Phases: FIGHTING -> FLOOR_CLEARED -> FIGHTING ... -> GAME_OVER.
+  All numbers live in `Balance`: spell 25 dmg, ×1.5/×1.25 for answering in the first/second
+  third of the timer, combo ×1.25 at 3 and ×1.5 at 5 in a row (carries across floors),
+  enemy HP = 25 × (5..7 hits) × enemy factor, enemy hit = (10 + floor) × factor (max 35),
+  +15 HP per cleared floor, timer 8-20 s (relaxed ×1.75). A floor takes 3-6 answers at
+  moderate speed (tested over 50 seeds × 30 floors).
+- App: single `MainActivity` (Compose) with Navigation: Home -> Run (floor-cleared overlay,
+  summary on game over). `RunViewModel` drives the timer (50 ms tick, pauses in background),
+  700 ms answer feedback, and records best floor in `SharedPreferences("Spire")` until Room/
+  DataStore arrive in step 5. Old Classic Duel, Statistics and Settings screens are still
+  the XML Activities, opened from Home.
+- Strings for the new screens exist in English and Albanian (`values-sq`).
