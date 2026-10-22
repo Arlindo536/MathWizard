@@ -35,7 +35,7 @@ Strings are English only. Hardcoded "Statistics Reset" toast.
 `Locale.US`; difficulty as raw Strings; `Question` options are rendered by parsing button
 text back to Int.
 
-## 2. Decision: Views vs Compose (proposal, pending owner approval)
+## 2. Decision: Views vs Compose (approved 2026-10-22)
 
 **Proposal: rebuild the UI in Jetpack Compose (single Activity, Navigation Compose),
 and move game rules into a pure Kotlin `:engine` module.**
@@ -60,3 +60,22 @@ What changes in the toolchain (done in step 2/3, not now):
 - Gradle 8.13 does not run on JDK 25 (system default and Android Studio's bundled JBR).
   Use JDK 17 or 21: `JAVA_HOME=~/.jdks/jdk-21.0.13+9 ./gradlew assembleDebug`.
 - Android SDK at `~/Android/Sdk` (platforms 34 and 36.1 installed).
+
+## 4. Engine (step 2)
+
+Pure Kotlin module `:engine`, no Android dependencies, tested with `./gradlew :engine:test`.
+
+- `Problems.generate(school, difficulty 0..100, seed)` -> `Problem(prompt, answer, choices)`.
+  Same inputs always give the same problem (`kotlin.random.Random(seed)`).
+- `Seeds`: SplitMix64-based derivation. `Seeds.problem(runSeed, floor, index)` for runs,
+  `Seeds.daily(epochDay)` for the Daily Rift (epoch day instead of `java.time`, which needs
+  API 26+).
+- `ArithmeticGenerator`: + from 0, − from 15, × from 35, ÷ from 55, two-step expressions
+  (precedence, brackets) from 75. Operand ranges grow with difficulty; no negatives, no zero
+  operands, exact division. Wrong choices model real mistakes: off-by-one, carry/borrow (±10),
+  neighbouring table facts, wrong evaluation order.
+- `DifficultyCurve.base(floor)` = 100 · (1 − e^(−(floor−1)/30)): 0 on floor 1, ~26 on 10,
+  ~55 on 25, ~80 on 50, approaching 100 (endless). `minimum(floor)` = 75% of base.
+- `AdaptiveDifficulty`: rolling window of the last 8 answers per school. Fast correct
+  (≤ half the target time) +3, correct +1, miss −4, two misses in a row an extra −4;
+  offset clamped to −20..+15, result never below the floor minimum.
