@@ -26,8 +26,6 @@
         
         <activity android:name=".DifficultyActivity" android:exported="false"/>
         <activity android:name=".QuizActivity" android:exported="false"/>
-        <activity android:name=".SettingsActivity" android:exported="false"/>
-        <activity android:name=".HighScoreActivity" android:exported="false"/>
 
         <!-- Stores the in-app language chosen in Settings on Android 7-12 (13+ does it natively). -->
         <service

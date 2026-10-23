@@ -1,6 +1,5 @@
 <resources>
     <dimen name="padding_large">32dp</dimen>
-    <dimen name="padding_medium">16dp</dimen>
     <dimen name="text_large">36sp</dimen>
     <dimen name="text_medium">24sp</dimen>
     <dimen name="button_corner_radius">12dp</dimen>

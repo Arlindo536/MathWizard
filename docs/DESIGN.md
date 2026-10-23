@@ -177,7 +177,8 @@ Pure Kotlin module `:engine`, no Android dependencies, tested with `./gradlew :e
   SharedPreferences file: sound, music, vibration, relaxed mode (timers ×1.75) and the Classic
   Duel options. Language (System / Shqip / English) uses `AppCompatDelegate.setApplicationLocales`
   with `locales_config.xml` and the AppCompat locale service for Android 7-12.
-- The old XML Statistics and Settings activities are no longer reachable from the app.
+- The old XML Statistics and Settings activities were removed (with the old menu layout and
+  their now unused strings); only the Classic Duel screens remain as XML Views.
 
 ## 11. Polish and release (step 9)
 

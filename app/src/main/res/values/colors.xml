@@ -18,6 +18,5 @@
     <!-- High Contrast Colors -->
     <color name="hc_background">#FF000000</color>
     <color name="hc_text">#FFFFFF00</color>
-    <color name="hc_card">#FF121212</color>
     <color name="hc_button">#FF333333</color>
 </resources>

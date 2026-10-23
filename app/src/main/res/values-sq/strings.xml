@@ -1,13 +1,9 @@
 <resources>
-    <string name="play">Luaj Matematikë</string>
     <string name="settings">Cilësimet</string>
     <string name="high_score">Statistikat</string>
     <string name="score_label">Pikët: %1$d</string>
-    <string name="best_score_label">Rezultati më i mirë: %1$d</string>
     <string name="toggle_tts">Aktivizo leximin me zë</string>
-    <string name="toggle_haptics">Aktivizo dridhjet</string>
     <string name="toggle_high_contrast">Kontrast i lartë</string>
-    <string name="reset_score">Rivendos statistikat</string>
     <string name="correct_answer">Saktë!</string>
     <string name="wrong_answer">Gabim. Provo përsëri!</string>
 
@@ -16,9 +12,6 @@
     <string name="diff_med">Mesatare (Mbledhje/Zbritje 1-20)</string>
     <string name="diff_hard">E vështirë (Shumëzim)</string>
 
-    <string name="stats_title">Statistikat e tua</string>
-    <string name="stats_played">Gjithsej të luajtura: %1$d</string>
-    <string name="stats_accuracy">Saktësia: %1$d%%</string>
 
     <string name="monster_label">Përbindëshi</string>
     <string name="player_label">Ti</string>
