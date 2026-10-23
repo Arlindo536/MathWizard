@@ -11,6 +11,11 @@ data class RunConfig(
     val playerMaxHp: Int = Balance.PLAYER_MAX_HP,
     /** Permanent upgrades bought between runs. */
     val bonuses: RunBonuses = RunBonuses(),
+    /**
+     * Adapt difficulty to the player's speed and accuracy. Off for the Daily Rift, so every
+     * player meets the same problems for the same answers.
+     */
+    val adaptive: Boolean = true,
 )
 
 enum class Phase { FIGHTING, FLOOR_CLEARED, GAME_OVER }
@@ -266,7 +271,7 @@ class RunEngine(
 
     private fun withProblem(s: RunState): RunState {
         val boss = s.isBossFloor
-        val difficulty = adaptive.difficultyFor(config.school, s.floor)
+        val difficulty = if (config.adaptive) adaptive.difficultyFor(config.school, s.floor) else DifficultyCurve.base(s.floor)
         var problem = Problems.generate(config.school, difficulty, Seeds.problem(config.seed, s.floor, problemIndex++), boss)
         if (modifiers.removesWrongChoice) {
             problem = problem.copy(choices = problem.choices - problem.choices.first { it != problem.answer })

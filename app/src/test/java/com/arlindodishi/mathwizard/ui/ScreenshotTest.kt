@@ -4,11 +4,24 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.test.core.app.ApplicationProvider
-import com.arlindodishi.mathwizard.GameFeedback
+import com.arlindodishi.mathwizard.appContainer
 import com.arlindodishi.mathwizard.engine.AnswerOutcome
 import com.arlindodishi.mathwizard.engine.MetaProfile
 import com.arlindodishi.mathwizard.engine.Phase
-import com.arlindodishi.mathwizard.engine.Relics
+import com.arlindodishi.mathwizard.data.DailyResult
+import com.arlindodishi.mathwizard.data.RecentRun
+import com.arlindodishi.mathwizard.data.Records
+import com.arlindodishi.mathwizard.data.Settings
+import com.arlindodishi.mathwizard.data.Totals
+import com.arlindodishi.mathwizard.engine.DailyRift
+import com.arlindodishi.mathwizard.engine.PracticeLevel
+import com.arlindodishi.mathwizard.engine.Problems
+import com.arlindodishi.mathwizard.ui.daily.DailyScreen
+import com.arlindodishi.mathwizard.ui.practice.PracticeScreen
+import com.arlindodishi.mathwizard.ui.practice.PracticeUiState
+import com.arlindodishi.mathwizard.ui.settings.SettingsScreen
+import com.arlindodishi.mathwizard.ui.stats.StatsScreen
+import com.arlindodishi.mathwizard.ui.stats.StatsUi
 import com.arlindodishi.mathwizard.engine.RunConfig
 import com.arlindodishi.mathwizard.engine.RunEngine
 import com.arlindodishi.mathwizard.engine.School
@@ -42,7 +55,7 @@ class ScreenshotTest {
     @get:Rule
     val compose = createComposeRule()
 
-    private val feedback by lazy { GameFeedback(ApplicationProvider.getApplicationContext()) }
+    private val feedback by lazy { ApplicationProvider.getApplicationContext<android.content.Context>().appContainer.feedback }
 
     private fun capture(name: String, advanceMillis: Long = 300, content: @Composable () -> Unit) {
         compose.mainClock.autoAdvance = false
@@ -67,8 +80,9 @@ class ScreenshotTest {
     @Test
     fun home() = capture("01_home") {
         HomeScreen(
-            bestFloor = 17, runsPlayed = 23, crystals = 245, soundOn = true, musicOn = true,
-            onClimb = {}, onUpgrades = {}, onClassic = {}, onStats = {}, onSettings = {}, onToggleSound = {}, onToggleMusic = {},
+            bestFloor = 17, runsPlayed = 23, crystals = 245, soundOn = true, musicOn = true, dailyDone = false, dailyStreak = 4,
+            onClimb = {}, onDaily = {}, onPractice = {}, onUpgrades = {}, onClassic = {}, onStats = {}, onSettings = {},
+            onToggleSound = {}, onToggleMusic = {},
         )
     }
 
@@ -134,6 +148,39 @@ class ScreenshotTest {
         )
     }
 
-    @Suppress("unused")
-    private val relicCount = Relics.all.size
+    @Test
+    fun daily() = capture("10_daily") {
+        DailyScreen(
+            today = 20_386,
+            results = listOf(20_385L, 20_384L, 20_383L).mapIndexed { i, d -> DailyResult(d, DailyRift.school(d), 9 - i, 30, 34, 40) },
+            onStart = {}, onBack = {},
+        )
+    }
+
+    @Test
+    fun practice() {
+        val problem = Problems.generate(School.POWERS, PracticeLevel.HARD.difficulty, 4L)
+        capture("11_practice") {
+            PracticeScreen(School.POWERS, PracticeLevel.HARD, PracticeUiState(problem, correct = 7, answered = 8, streak = 5), {}, {}, {})
+        }
+    }
+
+    @Test
+    fun stats() = capture("12_stats") {
+        StatsScreen(
+            StatsUi(
+                records = Records(runsPlayed = 23, bestFloor = 17, totalCrystals = 812),
+                totals = Totals(answered = 640, correct = 551, bosses = 14, bestStreak = 31),
+                bestBySchool = mapOf(School.ARITHMETIC to 17, School.FRACTIONS to 9, School.ALGEBRA to 4),
+                recent = listOf(RecentRun(School.FRACTIONS, 9, 1_792_700_000_000, 41), RecentRun(School.ARITHMETIC, 17, 1_792_600_000_000, 77)),
+                dailyStreak = 4, bestDailyStreak = 6,
+            ),
+            onBack = {},
+        )
+    }
+
+    @Test
+    fun settings() = capture("13_settings") {
+        SettingsScreen(Settings(relaxed = true), language = "sq", version = "2.0-alpha8", onToggle = { _, _ -> }, onLanguage = {}, onBack = {})
+    }
 }

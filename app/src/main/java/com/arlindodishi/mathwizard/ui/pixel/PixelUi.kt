@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -137,5 +138,33 @@ fun IconValue(sprite: PixelSprite, value: String, color: Color, modifier: Modifi
     Row(modifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(6.dp)) {
         PixelImage(sprite, Modifier.size(iconSize))
         Text(value, style = MaterialTheme.typography.titleLarge, color = color, modifier = Modifier.offset(y = (-1).dp))
+    }
+}
+
+/** A settings row with a pixel on/off switch; the whole row toggles (Switch semantics). */
+@Composable
+fun PixelToggleRow(label: String, checked: Boolean, onChange: (Boolean) -> Unit, modifier: Modifier = Modifier, description: String? = null) {
+    Row(
+        modifier
+            .heightIn(min = 56.dp)
+            .toggleable(value = checked, role = Role.Switch, onValueChange = onChange)
+            .padding(vertical = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        androidx.compose.foundation.layout.Column(Modifier.weight(1f)) {
+            Text(label, style = MaterialTheme.typography.titleLarge, color = SpireColors.Text)
+            if (description != null) Text(description, style = MaterialTheme.typography.bodyMedium, color = SpireColors.TextMuted)
+        }
+        // Track with a square knob that jumps between ends.
+        Box(
+            Modifier
+                .size(width = 52.dp, height = 28.dp)
+                .background(SpireColors.Ink)
+                .padding(3.dp)
+                .background(if (checked) SpireColors.Success.shade(0.25f) else SpireColors.Track),
+            contentAlignment = if (checked) Alignment.CenterEnd else Alignment.CenterStart,
+        ) {
+            Box(Modifier.padding(2.dp).size(18.dp).background(if (checked) SpireColors.Text else SpireColors.TextMuted))
+        }
     }
 }

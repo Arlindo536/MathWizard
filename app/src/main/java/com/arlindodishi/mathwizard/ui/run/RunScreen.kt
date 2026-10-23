@@ -75,7 +75,6 @@ import com.arlindodishi.mathwizard.engine.AnswerOutcome
 import com.arlindodishi.mathwizard.engine.Balance
 import com.arlindodishi.mathwizard.engine.Phase
 import com.arlindodishi.mathwizard.engine.Problem
-import com.arlindodishi.mathwizard.engine.School
 import com.arlindodishi.mathwizard.ui.pixel.PixelButton
 import com.arlindodishi.mathwizard.ui.pixel.PixelImage
 import com.arlindodishi.mathwizard.ui.pixel.SegmentedBar
@@ -93,11 +92,13 @@ import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @Composable
-fun RunRoute(school: School, onExit: () -> Unit) {
+fun RunRoute(mode: RunMode, onExit: () -> Unit) {
     val context = LocalContext.current.applicationContext
     val feedback = context.appContainer.feedback
     val viewModel: RunViewModel = viewModel(
-        factory = viewModelFactory { initializer { RunViewModel(context.appContainer.meta, school) } },
+        factory = viewModelFactory {
+            initializer { RunViewModel(context.appContainer.meta, context.appContainer.settings.settings, mode) }
+        },
     )
     val loaded by viewModel.ui.collectAsStateWithLifecycle()
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
@@ -118,7 +119,7 @@ fun RunRoute(school: School, onExit: () -> Unit) {
 
     if (gameOver) {
         LaunchedEffect(Unit) { feedback.play(Sfx.GAME_OVER) }
-        SummaryScreen(ui = ui, onAgain = viewModel::restart, onHome = onExit)
+        SummaryScreen(ui = ui, onAgain = viewModel::restart.takeUnless { ui.daily }, onHome = onExit)
     } else {
         RunScreen(
             ui = ui,

@@ -199,4 +199,52 @@
     <string name="toggle_on">Aktiv</string>
     <string name="toggle_off">Joaktiv</string>
     <string name="upgrade_owned">E hapur</string>
+
+    <!-- Daily Rift, Practice, Stats, Settings -->
+    <string name="home_daily">Çarja e Ditës</string>
+    <string name="home_practice">Praktikë</string>
+    <string name="daily_desc">E njëjta ngjitje për të gjithë sot. Pa përmirësime, një provë.</string>
+    <string name="daily_today">Shkolla e sotme</string>
+    <string name="daily_streak">Seria: %1$d</string>
+    <string name="daily_best_streak">Seria më e mirë: %1$d</string>
+    <string name="daily_start">Hyr në çarje</string>
+    <string name="daily_done">E kryer sot: kati %1$d</string>
+    <string name="daily_come_back">Kthehu nesër për një çarje të re.</string>
+    <string name="daily_history">Çarjet e fundit</string>
+    <string name="daily_ready">Gati</string>
+    <string name="practice_desc">Pa HP, pa kohë. Zgjidh shkollën dhe nivelin.</string>
+    <string name="practice_level_easy">E lehtë</string>
+    <string name="practice_level_medium">Mesatare</string>
+    <string name="practice_level_hard">E vështirë</string>
+    <string name="practice_level_expert">Ekspert</string>
+    <string name="practice_start">Fillo</string>
+    <string name="practice_score">%1$d / %2$d të sakta</string>
+    <string name="practice_streak">Seria %1$d</string>
+    <string name="practice_next">Tjetri</string>
+    <string name="practice_school">Shkolla</string>
+    <string name="practice_level">Niveli</string>
+    <string name="stats_runs">Ngjitje</string>
+    <string name="stats_best_floor">Kati më i lartë</string>
+    <string name="stats_accuracy_label">Saktësia</string>
+    <string name="stats_spells">Magji të hedhura</string>
+    <string name="stats_bosses">Boss-ë të mposhtur</string>
+    <string name="stats_crystals">Kristale të fituara</string>
+    <string name="stats_best_streak">Seria më e mirë e përgjigjeve</string>
+    <string name="stats_daily_streak">Seria ditore</string>
+    <string name="stats_by_school">Kati më i lartë sipas shkollës</string>
+    <string name="stats_recent">Ngjitjet e fundit</string>
+    <string name="stats_none">Ende asnjë ngjitje.</string>
+    <string name="stats_classic">Duel Klasik, rezultati më i mirë: %1$d</string>
+    <string name="settings_game">Loja</string>
+    <string name="settings_haptics">Dridhjet</string>
+    <string name="settings_relaxed">Mënyra e qetë</string>
+    <string name="settings_relaxed_desc" formatted="false">75% më shumë kohë për çdo problem.</string>
+    <string name="settings_language">Gjuha</string>
+    <string name="language_system">Sipas sistemit</string>
+    <string name="language_sq">Shqip</string>
+    <string name="language_en">English</string>
+    <string name="settings_classic">Duel Klasik</string>
+    <string name="settings_about">Rreth lojës</string>
+    <string name="settings_credits">Shkronja: Jersey 10 nga The Soft Type Project Authors (SIL Open Font License 1.1). Efektet zanore, muzika dhe arti pixel u krijuan për këtë lojë.</string>
+    <string name="settings_version">Versioni %1$s</string>
 </resources>

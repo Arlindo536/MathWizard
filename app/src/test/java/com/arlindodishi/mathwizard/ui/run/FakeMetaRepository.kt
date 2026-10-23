@@ -13,7 +13,17 @@ class FakeMetaRepository(initial: MetaProfile = MetaProfile()) : MetaRepository 
     override val profile = MutableStateFlow(initial)
     override val records = MutableStateFlow(Records())
     override val bestBySchool = MutableStateFlow(emptyMap<com.arlindodishi.mathwizard.engine.School, Int>())
+    override val totals = MutableStateFlow(com.arlindodishi.mathwizard.data.Totals())
+    override val recentRuns = MutableStateFlow(emptyList<com.arlindodishi.mathwizard.data.RecentRun>())
+    override val dailyResults = MutableStateFlow(emptyList<com.arlindodishi.mathwizard.data.DailyResult>())
     val recorded = mutableListOf<RunState>()
+    val recordedDaily = mutableListOf<Pair<Long, RunState>>()
+
+    override suspend fun recordDaily(state: RunState, epochDay: Long): Int? {
+        if (recordedDaily.any { it.first == epochDay }) return null
+        recordedDaily += epochDay to state
+        return MetaRewards.crystalsFor(state.stats)
+    }
 
     override suspend fun recordRun(state: RunState, seed: Long): RunReward {
         recorded += state

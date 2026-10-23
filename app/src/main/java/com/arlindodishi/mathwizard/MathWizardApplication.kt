@@ -6,6 +6,7 @@ import androidx.core.content.edit
 import androidx.room.Room
 import com.arlindodishi.mathwizard.data.MetaRepository
 import com.arlindodishi.mathwizard.data.RoomMetaRepository
+import com.arlindodishi.mathwizard.data.SettingsRepository
 import com.arlindodishi.mathwizard.data.db.AppDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,7 +29,9 @@ class AppContainer(context: Context) {
     private val roomMeta = RoomMetaRepository(database.metaDao())
     val meta: MetaRepository = roomMeta
 
-    val feedback: GameFeedback by lazy { GameFeedback(appContext) }
+    val settings = SettingsRepository(appContext)
+
+    val feedback: GameFeedback by lazy { GameFeedback(appContext, settings, scope) }
 
     init {
         scope.launch { importLegacyRecords() }

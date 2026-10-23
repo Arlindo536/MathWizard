@@ -31,3 +31,17 @@ data class WalletEntity(@PrimaryKey val id: Int = 0, val crystals: Int)
 data class RecordsRow(val runsPlayed: Int, val bestFloor: Int, val totalCrystals: Int)
 
 data class SchoolBestRow(val school: String, val bestFloor: Int)
+
+/** One finished Daily Rift; at most one per day. Added in schema version 3. */
+@Entity(tableName = "daily_runs")
+data class DailyRunEntity(
+    @PrimaryKey val epochDay: Long,
+    val school: String,
+    val floor: Int,
+    val answered: Int,
+    val correct: Int,
+    val crystalsEarned: Int,
+    val endedAtMillis: Long,
+)
+
+data class TotalsRow(val answered: Int, val correct: Int, val bosses: Int, val bestStreak: Int)

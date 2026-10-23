@@ -31,8 +31,9 @@ import com.arlindodishi.mathwizard.ui.theme.Spacing
 import com.arlindodishi.mathwizard.ui.theme.accent
 import kotlin.math.roundToInt
 
+/** End of a climb. [onAgain] is null for the Daily Rift (one attempt per day). */
 @Composable
-fun SummaryScreen(ui: RunUiState, onAgain: () -> Unit, onHome: () -> Unit) {
+fun SummaryScreen(ui: RunUiState, onAgain: (() -> Unit)?, onHome: () -> Unit) {
     val stats = ui.run.stats
     val accent = ui.run.problem.school.accent()
     Box(Modifier.fillMaxSize().background(SpireColors.Night)) {
@@ -45,6 +46,9 @@ fun SummaryScreen(ui: RunUiState, onAgain: () -> Unit, onHome: () -> Unit) {
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center,
         ) {
+            if (ui.daily) {
+                Text(stringResource(R.string.home_daily).uppercase(), style = MaterialTheme.typography.titleLarge, color = accent)
+            }
             Text(
                 stringResource(R.string.summary_title).uppercase(),
                 style = MaterialTheme.typography.headlineMedium,
@@ -62,6 +66,7 @@ fun SummaryScreen(ui: RunUiState, onAgain: () -> Unit, onHome: () -> Unit) {
             Text(
                 when {
                     reward == null -> ""
+                    ui.daily -> stringResource(R.string.daily_come_back)
                     reward.newRecord -> stringResource(R.string.summary_new_record).uppercase()
                     else -> stringResource(R.string.summary_best, reward.bestFloor)
                 },
@@ -91,10 +96,12 @@ fun SummaryScreen(ui: RunUiState, onAgain: () -> Unit, onHome: () -> Unit) {
                 Stat(stringResource(R.string.summary_bosses), stats.bossesDefeated.toString())
             }
             Spacer(Modifier.height(Spacing.l))
-            PixelButton(onClick = onAgain, color = accent, modifier = Modifier.fillMaxWidth().height(60.dp)) {
-                Text(stringResource(R.string.summary_again).uppercase(), style = MaterialTheme.typography.titleLarge)
+            if (onAgain != null) {
+                PixelButton(onClick = onAgain, color = accent, modifier = Modifier.fillMaxWidth().height(60.dp)) {
+                    Text(stringResource(R.string.summary_again).uppercase(), style = MaterialTheme.typography.titleLarge)
+                }
+                Spacer(Modifier.height(Spacing.s))
             }
-            Spacer(Modifier.height(Spacing.s))
             PixelButton(onClick = onHome, color = SpireColors.SurfaceRaised, contentColor = SpireColors.Text, modifier = Modifier.fillMaxWidth().height(56.dp)) {
                 Text(stringResource(R.string.summary_home).uppercase(), style = MaterialTheme.typography.titleLarge)
             }

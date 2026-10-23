@@ -17,6 +17,8 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import java.util.Locale
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 class QuizActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
 
@@ -77,10 +79,10 @@ class QuizActivity : AppCompatActivity(), TextToSpeech.OnInitListener {
         btnBackToMenu = findViewById(R.id.btnBackToMenu)
 
         // Read Settings
-        val sharedPrefs = getSharedPreferences("Settings", Context.MODE_PRIVATE)
-        ttsEnabled = sharedPrefs.getBoolean("tts_enabled", true)
-        hapticsEnabled = sharedPrefs.getBoolean("haptics_enabled", true)
-        highContrast = sharedPrefs.getBoolean("high_contrast", false)
+        val settings = runBlocking { appContainer.settings.settings.first() }
+        ttsEnabled = settings.ttsOn
+        hapticsEnabled = settings.hapticsOn
+        highContrast = settings.highContrast
 
         if (ttsEnabled) {
             tts = TextToSpeech(this, this)

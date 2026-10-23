@@ -45,6 +45,20 @@ class MigrationTest {
         }
     }
 
+    @Test
+    fun migrate2To3AddsEmptyDailyTable() {
+        helper.createDatabase(DB, 2).use { db ->
+            db.execSQL(
+                "INSERT INTO runs (endedAtMillis, seed, floor, answered, correct, bestStreak, bossesDefeated, crystalsEarned, legacy, school) " +
+                    "VALUES (1, 2, 9, 30, 25, 6, 1, 40, 0, 'ALGEBRA')",
+            )
+        }
+        helper.runMigrationsAndValidate(DB, 3, true, *AppDatabase.MIGRATIONS).use { db ->
+            db.query("SELECT COUNT(*) FROM daily_runs").use { c -> c.moveToFirst(); assertEquals(0, c.getInt(0)) }
+            db.query("SELECT school FROM runs").use { c -> c.moveToFirst(); assertEquals("ALGEBRA", c.getString(0)) }
+        }
+    }
+
     private companion object {
         const val DB = "migration-test"
     }

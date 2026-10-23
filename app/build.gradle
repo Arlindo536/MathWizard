@@ -23,8 +23,8 @@ android {
         applicationId "com.arlindodishi.mathwizard"
         minSdk 24
         targetSdk 34
-        versionCode 7
-        versionName "2.0-alpha7"
+        versionCode 8
+        versionName "2.0-alpha8"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -100,6 +100,8 @@ dependencies {
     implementation 'androidx.lifecycle:lifecycle-runtime-compose:2.9.1'
     implementation 'androidx.navigation:navigation-compose:2.9.0'
     debugImplementation 'androidx.compose.ui:ui-tooling'
+
+    implementation 'androidx.datastore:datastore-preferences:1.1.7'
 
     def roomVersion = '2.7.2'
     implementation "androidx.room:room-runtime:$roomVersion"

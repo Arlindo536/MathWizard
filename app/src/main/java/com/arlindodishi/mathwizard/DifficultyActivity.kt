@@ -1,11 +1,12 @@
 package com.arlindodishi.mathwizard
 
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.runBlocking
 
 class DifficultyActivity : AppCompatActivity() {
 
@@ -14,8 +15,7 @@ class DifficultyActivity : AppCompatActivity() {
         setContentView(R.layout.activity_difficulty)
 
         // Adjust colors for High Contrast
-        val prefs = getSharedPreferences("Settings", Context.MODE_PRIVATE)
-        if (prefs.getBoolean("high_contrast", false)) {
+        if (runBlocking { appContainer.settings.settings.first() }.highContrast) {
             window.decorView.setBackgroundColor(ContextCompat.getColor(this, R.color.hc_background))
         }
 

@@ -5,7 +5,9 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.arlindodishi.mathwizard.data.MetaRepository
 import com.arlindodishi.mathwizard.data.RunReward
+import com.arlindodishi.mathwizard.data.Settings
 import com.arlindodishi.mathwizard.engine.AnswerOutcome
+import com.arlindodishi.mathwizard.engine.DailyRift
 import com.arlindodishi.mathwizard.engine.Phase
 import com.arlindodishi.mathwizard.engine.RunConfig
 import com.arlindodishi.mathwizard.engine.RunEngine
@@ -16,14 +18,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import kotlin.random.Random
+
+/** What kind of climb this is. */
+sealed interface RunMode {
+    data class Spire(val school: School) : RunMode
+
+    /** The Daily Rift of [epochDay]: fixed seed, no upgrades, one attempt. */
+    data class Daily(val epochDay: Long) : RunMode
+}
 
 /** Shown briefly after an answer; [chosen] is null when the timer ran out. */
 data class Feedback(val outcome: AnswerOutcome, val chosen: String?)
@@ -38,11 +50,13 @@ data class RunUiState(
     val comboShift: Int = 0,
     /** Set once a finished run has been saved. */
     val reward: RunReward? = null,
+    val daily: Boolean = false,
 )
 
 class RunViewModel(
     private val meta: MetaRepository,
-    private val school: School = School.ARITHMETIC,
+    private val settings: Flow<Settings> = flowOf(Settings()),
+    private val mode: RunMode = RunMode.Spire(School.ARITHMETIC),
     private val clock: () -> Long = SystemClock::elapsedRealtime,
     private val seeds: () -> Long = { Random.nextLong() },
     /** Injectable so tests can run the endless timer loop in a scope they control. */
@@ -119,14 +133,19 @@ class RunViewModel(
     }
 
     private suspend fun startRun() {
-        val bonuses = meta.profile.first().bonuses()
-        seed = seeds()
-        engine = RunEngine(RunConfig(seed = seed, school = school, bonuses = bonuses))
+        val relaxed = settings.first().relaxed
+        val config = when (mode) {
+            is RunMode.Spire -> RunConfig(seed = seeds(), school = mode.school, relaxed = relaxed, bonuses = meta.profile.first().bonuses())
+            is RunMode.Daily -> DailyRift.config(mode.epochDay, relaxed)
+        }
+        seed = config.seed
+        engine = RunEngine(config)
         startProblemTimer()
         _ui.value = RunUiState(
             run = engine.state,
             timeLeftMillis = engine.state.timeLimitMillis,
             comboShift = engine.currentModifiers.comboThresholdShift,
+            daily = mode is RunMode.Daily,
         )
     }
 
@@ -153,7 +172,10 @@ class RunViewModel(
         if (state.phase == Phase.GAME_OVER) {
             val runSeed = seed
             viewModelScope.launch {
-                val reward = meta.recordRun(state, runSeed)
+                val reward = when (mode) {
+                    is RunMode.Spire -> meta.recordRun(state, runSeed)
+                    is RunMode.Daily -> RunReward(meta.recordDaily(state, mode.epochDay) ?: 0, newRecord = false, bestFloor = state.floor)
+                }
                 _ui.update { it?.copy(reward = reward) }
             }
         }

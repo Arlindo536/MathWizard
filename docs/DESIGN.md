@@ -160,3 +160,21 @@ Pure Kotlin module `:engine`, no Android dependencies, tested with `./gradlew :e
   haptics setting is respected.
 - Screenshot tests (Robolectric native graphics + Roborazzi) render 9 screens to
   `docs/screenshots`; they caught a bug where spell particles never played.
+
+## 10. Daily Rift, Practice, Stats, Settings (step 8)
+
+- Daily Rift (`engine/Daily.kt`): seed `Seeds.daily(epochDay)`, school rotates through all six,
+  no upgrades and `RunConfig.adaptive = false`, so the problems on each floor are the same for
+  every player regardless of how they answer (tested). One attempt per day: results live in
+  Room table `daily_runs` (schema v3, migration tested), crystals are credited, daily runs do
+  not count towards school records. Streaks are computed from the played days (`Streaks`).
+  The day is `epochDayNow()` in the device time zone (no java.time on API 24-25).
+- Practice: pick an unlocked school and a level (difficulty 10/35/60/85); no HP, no timer, no
+  crystals. Correct answers move on by themselves; a wrong one waits for "Next".
+- Stats screen: climbs, best floor, accuracy, spells, bosses, crystals, best answer streak,
+  daily streak, best floor per school, the last 10 climbs, and the Classic Duel best score.
+- Settings in Preferences DataStore (`SettingsRepository`), migrated once from the old
+  SharedPreferences file: sound, music, vibration, relaxed mode (timers ×1.75) and the Classic
+  Duel options. Language (System / Shqip / English) uses `AppCompatDelegate.setApplicationLocales`
+  with `locales_config.xml` and the AppCompat locale service for Android 7-12.
+- The old XML Statistics and Settings activities are no longer reachable from the app.

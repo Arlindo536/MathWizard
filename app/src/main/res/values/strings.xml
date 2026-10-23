@@ -200,4 +200,52 @@
     <string name="toggle_on">On</string>
     <string name="toggle_off">Off</string>
     <string name="upgrade_owned">Owned</string>
+
+    <!-- Daily Rift, Practice, Stats, Settings -->
+    <string name="home_daily">Daily Rift</string>
+    <string name="home_practice">Practice</string>
+    <string name="daily_desc">The same climb for everyone today. No upgrades, one attempt.</string>
+    <string name="daily_today">Today\'s school</string>
+    <string name="daily_streak">Streak: %1$d</string>
+    <string name="daily_best_streak">Best streak: %1$d</string>
+    <string name="daily_start">Enter the rift</string>
+    <string name="daily_done">Done today: floor %1$d</string>
+    <string name="daily_come_back">Come back tomorrow for a new rift.</string>
+    <string name="daily_history">Recent rifts</string>
+    <string name="daily_ready">Ready</string>
+    <string name="practice_desc">No HP, no timer. Pick a school and a level.</string>
+    <string name="practice_level_easy">Easy</string>
+    <string name="practice_level_medium">Medium</string>
+    <string name="practice_level_hard">Hard</string>
+    <string name="practice_level_expert">Expert</string>
+    <string name="practice_start">Start</string>
+    <string name="practice_score">%1$d / %2$d correct</string>
+    <string name="practice_streak">Streak %1$d</string>
+    <string name="practice_next">Next</string>
+    <string name="practice_school">School</string>
+    <string name="practice_level">Level</string>
+    <string name="stats_runs">Climbs</string>
+    <string name="stats_best_floor">Best floor</string>
+    <string name="stats_accuracy_label">Accuracy</string>
+    <string name="stats_spells">Spells cast</string>
+    <string name="stats_bosses">Bosses defeated</string>
+    <string name="stats_crystals">Crystals earned</string>
+    <string name="stats_best_streak">Best answer streak</string>
+    <string name="stats_daily_streak">Daily streak</string>
+    <string name="stats_by_school">Best floor by school</string>
+    <string name="stats_recent">Recent climbs</string>
+    <string name="stats_none">No climbs yet.</string>
+    <string name="stats_classic">Classic Duel best score: %1$d</string>
+    <string name="settings_game">Game</string>
+    <string name="settings_haptics">Vibration</string>
+    <string name="settings_relaxed">Relaxed mode</string>
+    <string name="settings_relaxed_desc" formatted="false">75% more time for every problem.</string>
+    <string name="settings_language">Language</string>
+    <string name="language_system">System</string>
+    <string name="language_sq">Shqip</string>
+    <string name="language_en">English</string>
+    <string name="settings_classic">Classic Duel</string>
+    <string name="settings_about">About</string>
+    <string name="settings_credits">Font: Jersey 10 by The Soft Type Project Authors (SIL Open Font License 1.1). Sound effects, music and pixel art were made for this game.</string>
+    <string name="settings_version">Version %1$s</string>
 </resources>

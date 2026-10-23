@@ -1,5 +1,6 @@
 package com.arlindodishi.mathwizard.data
 
+import com.arlindodishi.mathwizard.data.db.DailyRunEntity
 import com.arlindodishi.mathwizard.data.db.MetaDao
 import com.arlindodishi.mathwizard.data.db.RunEntity
 import com.arlindodishi.mathwizard.engine.MetaProfile
@@ -12,6 +13,12 @@ import kotlinx.coroutines.flow.map
 
 data class Records(val runsPlayed: Int = 0, val bestFloor: Int = 0, val totalCrystals: Int = 0)
 
+data class Totals(val answered: Int = 0, val correct: Int = 0, val bosses: Int = 0, val bestStreak: Int = 0)
+
+data class RecentRun(val school: School, val floor: Int, val endedAtMillis: Long, val crystals: Int)
+
+data class DailyResult(val epochDay: Long, val school: School, val floor: Int, val correct: Int, val answered: Int, val crystals: Int)
+
 /** [newRecord] and [bestFloor] are for the run's own school. */
 data class RunReward(val crystals: Int, val newRecord: Boolean, val bestFloor: Int)
 
@@ -22,6 +29,15 @@ interface MetaRepository {
 
     /** Best floor reached in each school that has been played. */
     val bestBySchool: Flow<Map<School, Int>>
+
+    val totals: Flow<Totals>
+    val recentRuns: Flow<List<RecentRun>>
+
+    /** Finished Daily Rifts, newest first. */
+    val dailyResults: Flow<List<DailyResult>>
+
+    /** Stores a finished Daily Rift; returns the crystals earned, or null if the day was already played. */
+    suspend fun recordDaily(state: RunState, epochDay: Long): Int?
 
     /** Stores a finished run and credits its crystals. */
     suspend fun recordRun(state: RunState, seed: Long): RunReward
@@ -47,6 +63,37 @@ class RoomMetaRepository(
         dao.observeBestBySchool().map { rows ->
             rows.mapNotNull { row -> School.entries.find { it.name == row.school }?.let { it to row.bestFloor } }.toMap()
         }
+
+    override val totals: Flow<Totals> =
+        dao.observeTotals().map { Totals(it.answered, it.correct, it.bosses, it.bestStreak) }
+
+    override val recentRuns: Flow<List<RecentRun>> = dao.observeRecentRuns(RECENT_LIMIT).map { rows ->
+        rows.mapNotNull { row -> schoolOf(row.school)?.let { RecentRun(it, row.floor, row.endedAtMillis, row.crystalsEarned) } }
+    }
+
+    override val dailyResults: Flow<List<DailyResult>> = dao.observeDailyRuns().map { rows ->
+        rows.mapNotNull { row ->
+            schoolOf(row.school)?.let { DailyResult(row.epochDay, it, row.floor, row.correct, row.answered, row.crystalsEarned) }
+        }
+    }
+
+    override suspend fun recordDaily(state: RunState, epochDay: Long): Int? {
+        val crystals = MetaRewards.crystalsFor(state.stats)
+        val saved = dao.recordDaily(
+            DailyRunEntity(
+                epochDay = epochDay,
+                school = state.problem.school.name,
+                floor = state.floor,
+                answered = state.stats.answered,
+                correct = state.stats.correct,
+                crystalsEarned = crystals,
+                endedAtMillis = clock(),
+            ),
+        )
+        return if (saved) crystals else null
+    }
+
+    private fun schoolOf(name: String): School? = School.entries.find { it.name == name }
 
     override suspend fun recordRun(state: RunState, seed: Long): RunReward {
         val crystals = MetaRewards.crystalsFor(state.stats)
@@ -84,5 +131,9 @@ class RoomMetaRepository(
                 legacy = true,
             ),
         )
+    }
+
+    private companion object {
+        const val RECENT_LIMIT = 10
     }
 }

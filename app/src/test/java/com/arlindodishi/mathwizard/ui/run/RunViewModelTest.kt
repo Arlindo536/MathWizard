@@ -1,10 +1,13 @@
 package com.arlindodishi.mathwizard.ui.run
 
+import com.arlindodishi.mathwizard.data.Settings
 import com.arlindodishi.mathwizard.engine.AnswerOutcome
+import com.arlindodishi.mathwizard.engine.DailyRift
 import com.arlindodishi.mathwizard.engine.MetaProfile
 import com.arlindodishi.mathwizard.engine.Phase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
+import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.coroutines.test.advanceTimeBy
@@ -147,6 +150,31 @@ class RunViewModelTest {
         vm.continueToNextFloor(offer[1].id)
         assertEquals(listOf(offer[1]), vm.state.run.relics)
         assertEquals(2, vm.state.run.floor)
+    }
+
+    @Test
+    fun relaxedSettingGivesLongerTimers() = runTest(dispatcher) {
+        val normal = newViewModel().state.run.timeLimitMillis
+        val relaxed = RunViewModel(meta, flowOf(Settings(relaxed = true)), clock = { testScheduler.currentTime }, seeds = { 42L }, scope = backgroundScope)
+        runCurrent()
+        assertTrue(relaxed.state.run.timeLimitMillis > normal)
+    }
+
+    @Test
+    fun dailyRunIgnoresUpgradesAndIsRecordedAsDaily() = runTest(dispatcher) {
+        meta.profile.value = MetaProfile(levels = mapOf("vitality" to 5))
+        val vm = RunViewModel(meta, mode = RunMode.Daily(20_000), clock = { testScheduler.currentTime }, scope = backgroundScope)
+        runCurrent()
+        assertTrue(vm.state.daily)
+        assertEquals(100, vm.state.run.playerMaxHp)
+        assertEquals(DailyRift.school(20_000), vm.state.run.problem.school)
+        while (vm.state.run.phase != Phase.GAME_OVER) {
+            vm.answerWrongly()
+            finishFeedback()
+        }
+        assertEquals(listOf(20_000L), meta.recordedDaily.map { it.first })
+        assertTrue(meta.recorded.isEmpty())
+        assertFalse(vm.state.reward!!.newRecord)
     }
 
     @Test

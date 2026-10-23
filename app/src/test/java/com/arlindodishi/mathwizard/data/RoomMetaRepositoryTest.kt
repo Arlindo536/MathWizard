@@ -97,4 +97,27 @@ class RoomMetaRepositoryTest {
         assertEquals(mapOf(School.ARITHMETIC to 8, School.FRACTIONS to 3), repo.bestBySchool.first())
         assertEquals(8, repo.records.first().bestFloor)
     }
+
+    @Test
+    fun dailyIsRecordedOncePerDayAndCreditsCrystals() = runTest {
+        val state = finishedRun(6, RunStats(correct = 20, floorsCleared = 5, bossesDefeated = 1), School.POWERS)
+        val first = repo.recordDaily(state, epochDay = 20_000)
+        assertEquals(5 * 3 + 10 + 4, first)
+        assertEquals(null, repo.recordDaily(state, epochDay = 20_000))
+        repo.recordDaily(state.copy(floor = 3), epochDay = 20_001)
+        assertEquals(listOf(20_001L, 20_000L), repo.dailyResults.first().map { it.epochDay })
+        assertEquals(School.POWERS, repo.dailyResults.first().last().school)
+        assertEquals(2 * first!!, repo.profile.first().crystals)
+        assertEquals("daily runs do not count as climbs", 0, repo.records.first().runsPlayed)
+    }
+
+    @Test
+    fun totalsAndRecentRunsSummariseClimbs() = runTest {
+        repo.recordRun(finishedRun(4, RunStats(answered = 12, correct = 10, bestStreak = 6, bossesDefeated = 0)), seed = 1L)
+        repo.recordRun(finishedRun(7, RunStats(answered = 20, correct = 15, bestStreak = 9, bossesDefeated = 1), School.ALGEBRA), seed = 2L)
+        assertEquals(Totals(answered = 32, correct = 25, bosses = 1, bestStreak = 9), repo.totals.first())
+        assertEquals(listOf(7, 4), repo.recentRuns.first().map { it.floor })
+        repo.importLegacyBest(30)
+        assertEquals("legacy rows are not recent runs", 2, repo.recentRuns.first().size)
+    }
 }

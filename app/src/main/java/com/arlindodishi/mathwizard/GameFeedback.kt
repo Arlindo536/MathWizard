@@ -5,10 +5,15 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import android.media.SoundPool
 import androidx.annotation.RawRes
-import androidx.core.content.edit
-import kotlinx.coroutines.flow.MutableStateFlow
+import com.arlindodishi.mathwizard.data.Setting
+import com.arlindodishi.mathwizard.data.SettingsRepository
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.launch
 
 enum class Sfx(@param:RawRes val res: Int) {
     CLICK(R.raw.sfx_click),
@@ -24,13 +29,11 @@ enum class Sfx(@param:RawRes val res: Int) {
 }
 
 /**
- * Sound effects, the music loop and the haptics switch, all mutable from the Home screen.
- * Settings live in the same SharedPreferences file as the classic screens until DataStore
- * arrives with the settings screen (step 8).
+ * Sound effects, the music loop and haptics, driven by [SettingsRepository]. Values are kept
+ * as StateFlows so the game can check them instantly.
  */
-class GameFeedback(context: Context) {
+class GameFeedback(context: Context, private val settings: SettingsRepository, private val scope: CoroutineScope) {
     private val appContext = context.applicationContext
-    private val prefs = appContext.getSharedPreferences("Settings", Context.MODE_PRIVATE)
 
     private val attributes = AudioAttributes.Builder()
         .setUsage(AudioAttributes.USAGE_GAME)
@@ -41,33 +44,35 @@ class GameFeedback(context: Context) {
     private var music: MediaPlayer? = null
     private var inForeground = false
 
-    private val _soundOn = MutableStateFlow(prefs.getBoolean(KEY_SOUND, true))
-    val soundOn: StateFlow<Boolean> = _soundOn.asStateFlow()
+    val soundOn: StateFlow<Boolean> = settings.settings.map { it.soundOn }.stateIn(scope, SharingStarted.Eagerly, true)
+    val musicOn: StateFlow<Boolean> = settings.settings.map { it.musicOn }.stateIn(scope, SharingStarted.Eagerly, true)
+    private val haptics: StateFlow<Boolean> = settings.settings.map { it.hapticsOn }.stateIn(scope, SharingStarted.Eagerly, true)
 
-    private val _musicOn = MutableStateFlow(prefs.getBoolean(KEY_MUSIC, true))
-    val musicOn: StateFlow<Boolean> = _musicOn.asStateFlow()
+    val hapticsOn: Boolean get() = haptics.value
 
-    val hapticsOn: Boolean get() = prefs.getBoolean(KEY_HAPTICS, true)
+    init {
+        // Start or stop the loop whenever the music setting changes.
+        scope.launch(Dispatchers.Main) {
+            musicOn.collect { on -> if (on && inForeground) startMusic() else music?.pause() }
+        }
+    }
 
     fun play(sfx: Sfx) {
-        if (!_soundOn.value) return
+        if (!soundOn.value) return
         soundIds[sfx]?.let { pool.play(it, SFX_VOLUME, SFX_VOLUME, 1, 0, 1f) }
     }
 
     fun setSound(on: Boolean) {
-        _soundOn.value = on
-        prefs.edit { putBoolean(KEY_SOUND, on) }
+        scope.launch { settings.set(Setting.SOUND, on) }
     }
 
     fun setMusic(on: Boolean) {
-        _musicOn.value = on
-        prefs.edit { putBoolean(KEY_MUSIC, on) }
-        if (on && inForeground) startMusic() else music?.pause()
+        scope.launch { settings.set(Setting.MUSIC, on) }
     }
 
     fun onForeground() {
         inForeground = true
-        if (_musicOn.value) startMusic()
+        if (musicOn.value) startMusic()
     }
 
     fun onBackground() {
@@ -84,9 +89,6 @@ class GameFeedback(context: Context) {
     }
 
     private companion object {
-        const val KEY_SOUND = "sound_enabled"
-        const val KEY_MUSIC = "music_enabled"
-        const val KEY_HAPTICS = "haptics_enabled"
         const val SFX_VOLUME = 0.8f
         const val MUSIC_VOLUME = 0.35f
     }

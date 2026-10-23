@@ -47,7 +47,7 @@ fun SpireBackdrop(climb: Float, torch: Color, modifier: Modifier = Modifier) {
             val dim = (group + flicker) % 5 == 0
             cell(sx * size.width, sy * size.height, 1f, 1f, if (dim) Color(0xFF6B63A8) else Color(0xFFD9D4FF))
         }
-        drawMoon(size.width * 0.11f, size.height * 0.33f, vp)
+        drawMoon(size.width * 0.80f, size.height * 0.29f, vp)
         drawTowers(vp, Color(0xFF1E1440), seed = 3, heightFactor = 0.30f)
         drawTowers(vp, Color(0xFF261A50), seed = 11, heightFactor = 0.20f)
         drawPillar(left = 0f, climb = climb, vp = vp, torch = torch, phase = phase)

@@ -19,8 +19,10 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -51,7 +53,11 @@ fun HomeScreen(
     crystals: Int,
     soundOn: Boolean,
     musicOn: Boolean,
+    dailyDone: Boolean,
+    dailyStreak: Int,
     onClimb: () -> Unit,
+    onDaily: () -> Unit,
+    onPractice: () -> Unit,
     onUpgrades: () -> Unit,
     onClassic: () -> Unit,
     onStats: () -> Unit,
@@ -112,20 +118,40 @@ fun HomeScreen(
                 Text(stringResource(R.string.home_climb).uppercase(), style = MaterialTheme.typography.titleLarge)
             }
             Spacer(Modifier.height(Spacing.s))
-            listOf(
-                R.string.home_upgrades to onUpgrades,
-                R.string.home_classic to onClassic,
-                R.string.high_score to onStats,
-                R.string.settings to onSettings,
-            ).forEach { (label, action) ->
-                PixelButton(
-                    onClick = action,
-                    color = SpireColors.SurfaceRaised,
-                    contentColor = SpireColors.Text,
-                    modifier = Modifier.fillMaxWidth().height(52.dp).padding(vertical = 2.dp),
-                ) {
-                    Text(stringResource(label).uppercase(), style = MaterialTheme.typography.titleMedium)
+            PixelButton(onClick = onDaily, color = School.SEQUENCES.accent(), modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(stringResource(R.string.home_daily).uppercase(), style = MaterialTheme.typography.titleLarge)
+                    Spacer(Modifier.width(Spacing.m))
+                    Text(
+                        if (dailyDone) "\u2713" else stringResource(R.string.daily_ready).uppercase(),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    if (dailyStreak > 0) {
+                        Spacer(Modifier.width(Spacing.s))
+                        Text("\u00B7 $dailyStreak", style = MaterialTheme.typography.titleMedium)
+                    }
                 }
+            }
+            Spacer(Modifier.height(Spacing.s))
+            listOf(
+                listOf(R.string.home_practice to onPractice, R.string.home_upgrades to onUpgrades),
+                listOf(R.string.high_score to onStats, R.string.settings to onSettings),
+            ).forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s), modifier = Modifier.padding(vertical = 3.dp)) {
+                    row.forEach { (label, action) ->
+                        PixelButton(
+                            onClick = action,
+                            color = SpireColors.SurfaceRaised,
+                            contentColor = SpireColors.Text,
+                            modifier = Modifier.weight(1f).height(52.dp),
+                        ) {
+                            Text(stringResource(label).uppercase(), style = MaterialTheme.typography.titleMedium)
+                        }
+                    }
+                }
+            }
+            TextButton(onClick = onClassic) {
+                Text(stringResource(R.string.home_classic), style = MaterialTheme.typography.titleMedium, color = SpireColors.TextMuted)
             }
             Spacer(Modifier.weight(1f))
         }

@@ -1,12 +1,13 @@
 package com.arlindodishi.mathwizard
 
 import android.os.Bundle
-import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.appcompat.app.AppCompatActivity
 import com.arlindodishi.mathwizard.ui.MathWizardApp
 
-class MainActivity : ComponentActivity() {
+/** AppCompatActivity so the in-app language (AppCompatDelegate.setApplicationLocales) applies. */
+class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         enableEdgeToEdge()

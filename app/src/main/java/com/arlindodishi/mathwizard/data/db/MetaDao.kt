@@ -38,6 +38,24 @@ abstract class MetaDao {
     @Query("SELECT COUNT(*) FROM runs")
     abstract suspend fun runCount(): Int
 
+    @Query(
+        "SELECT COALESCE(SUM(answered), 0) AS answered, COALESCE(SUM(correct), 0) AS correct, " +
+            "COALESCE(SUM(bossesDefeated), 0) AS bosses, COALESCE(MAX(bestStreak), 0) AS bestStreak FROM runs",
+    )
+    abstract fun observeTotals(): Flow<TotalsRow>
+
+    @Query("SELECT * FROM runs WHERE legacy = 0 ORDER BY endedAtMillis DESC, id DESC LIMIT :limit")
+    abstract fun observeRecentRuns(limit: Int): Flow<List<RunEntity>>
+
+    @Query("SELECT * FROM daily_runs ORDER BY epochDay DESC")
+    abstract fun observeDailyRuns(): Flow<List<DailyRunEntity>>
+
+    @Query("SELECT * FROM daily_runs WHERE epochDay = :epochDay")
+    abstract suspend fun dailyRun(epochDay: Long): DailyRunEntity?
+
+    @Insert
+    abstract suspend fun insertDaily(run: DailyRunEntity)
+
     @Insert
     abstract suspend fun insertRun(run: RunEntity): Long
 
@@ -54,6 +72,15 @@ abstract class MetaDao {
         insertRun(run)
         upsertWallet(WalletEntity(crystals = crystals() + run.crystalsEarned))
         return previousBest
+    }
+
+    /** Saves today's Daily Rift and credits its crystals; false if the day was already played. */
+    @Transaction
+    open suspend fun recordDaily(run: DailyRunEntity): Boolean {
+        if (dailyRun(run.epochDay) != null) return false
+        insertDaily(run)
+        upsertWallet(WalletEntity(crystals = crystals() + run.crystalsEarned))
+        return true
     }
 
     /** Buys one level of [upgradeId] if the rules in [MetaProfile.buy] allow it. */
