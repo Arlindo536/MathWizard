@@ -9,6 +9,8 @@ data class RunConfig(
     /** Longer timers for players who want less pressure. */
     val relaxed: Boolean = false,
     val playerMaxHp: Int = Balance.PLAYER_MAX_HP,
+    /** Permanent upgrades bought between runs. */
+    val bonuses: RunBonuses = RunBonuses(),
 )
 
 enum class Phase { FIGHTING, FLOOR_CLEARED, GAME_OVER }
@@ -42,6 +44,7 @@ data class RunState(
     val shieldReady: Boolean = false,
     /** Phoenix Feather has not been consumed yet. */
     val reviveReady: Boolean = false,
+    val hintsLeft: Int = 0,
 ) {
     val isBossFloor: Boolean get() = enemy.type.boss
 }
@@ -135,15 +138,16 @@ class RunEngine(
     var state: RunState = withProblem(
         RunState(
             floor = 1,
-            playerHp = config.playerMaxHp,
-            playerMaxHp = config.playerMaxHp,
+            playerHp = config.playerMaxHp + config.bonuses.maxHpBonus,
+            playerMaxHp = config.playerMaxHp + config.bonuses.maxHpBonus,
             enemy = spawnEnemy(1),
             problem = PLACEHOLDER_PROBLEM,
             timeLimitMillis = 0,
             streak = 0,
             phase = Phase.FIGHTING,
             stats = RunStats(),
-        ),
+            hintsLeft = config.bonuses.hints,
+        ).let { if (config.bonuses.startingRelic) withRelic(it, startingRelic()) else it },
     )
         private set
 
@@ -173,20 +177,15 @@ class RunEngine(
         var s = state
         if (relicId != null) {
             val relic = requireNotNull(s.relicOffer.find { it.id == relicId }) { "$relicId is not on offer" }
-            modifiers = Modifiers.of(s.relics + relic)
-            s = s.copy(
-                relics = s.relics + relic,
-                playerMaxHp = s.playerMaxHp + relic.maxHpBonus,
-                playerHp = s.playerHp + relic.maxHpBonus,
-                reviveReady = s.reviveReady || relic.reviveHp > 0,
-            )
+            s = withRelic(s, relic)
         }
         val floor = s.floor + 1
+        val heal = Balance.FLOOR_HEAL + modifiers.floorHealBonus + config.bonuses.floorHealBonus
         problemIndex = 0
         state = withProblem(
             s.copy(
                 floor = floor,
-                playerHp = (s.playerHp + Balance.FLOOR_HEAL + modifiers.floorHealBonus).coerceAtMost(s.playerMaxHp),
+                playerHp = (s.playerHp + heal).coerceAtMost(s.playerMaxHp),
                 enemy = spawnEnemy(floor),
                 phase = Phase.FIGHTING,
                 relicOffer = emptyList(),
@@ -195,12 +194,39 @@ class RunEngine(
         )
     }
 
+    /**
+     * Hides wrong choices until two remain (the answer and one wrong). Returns false when no
+     * hint is left, the problem already has two choices, or the player is not fighting.
+     */
+    fun useHint(): Boolean {
+        val s = state
+        if (s.phase != Phase.FIGHTING || s.hintsLeft <= 0 || s.problem.choices.size <= 2) return false
+        val keptWrong = s.problem.choices.first { it != s.problem.answer }
+        val choices = s.problem.choices.filter { it == s.problem.answer || it == keptWrong }
+        state = s.copy(problem = s.problem.copy(choices = choices), hintsLeft = s.hintsLeft - 1)
+        return true
+    }
+
+    private fun withRelic(s: RunState, relic: Relic): RunState {
+        modifiers = Modifiers.of(s.relics + relic)
+        return s.copy(
+            relics = s.relics + relic,
+            playerMaxHp = s.playerMaxHp + relic.maxHpBonus,
+            playerHp = s.playerHp + relic.maxHpBonus,
+            reviveReady = s.reviveReady || relic.reviveHp > 0,
+            shieldReady = s.shieldReady || relic.missShield,
+        )
+    }
+
+    private fun startingRelic(): Relic = Relics.all.random(Random(Seeds.mix(config.seed, START_RELIC_SALT)))
+
     private fun hit(s: RunState, elapsedMillis: Long): AnswerOutcome.Hit {
         val streak = s.streak + 1
         val speed = Balance.speedMultiplier(elapsedMillis, s.timeLimitMillis, modifiers.widerSpeedWindow)
         val combo = Balance.comboMultiplier(streak, modifiers.comboThresholdShift)
         val bossBonus = if (s.isBossFloor) modifiers.bossDamageMultiplier else 1.0
-        val damage = (Balance.SPELL_DAMAGE * speed * combo * modifiers.damageMultiplier * bossBonus).roundToInt()
+        val multiplier = modifiers.damageMultiplier * config.bonuses.damageMultiplier * bossBonus
+        val damage = (Balance.SPELL_DAMAGE * speed * combo * multiplier).roundToInt()
         val enemy = s.enemy.copy(hp = (s.enemy.hp - damage).coerceAtLeast(0))
         val healed = minOf(modifiers.healPerHit, s.playerMaxHp - s.playerHp)
         val fast = speed > 1.0
@@ -215,7 +241,8 @@ class RunEngine(
         )
         val next = s.copy(enemy = enemy, streak = streak, stats = stats, playerHp = s.playerHp + healed)
         state = if (enemy.defeated) {
-            next.copy(phase = Phase.FLOOR_CLEARED, relicOffer = Relics.offer(s.relics, relicRandom(s.floor)))
+            val offer = Relics.offer(s.relics, relicRandom(s.floor), config.bonuses.relicOfferSize)
+            next.copy(phase = Phase.FLOOR_CLEARED, relicOffer = offer)
         } else {
             withProblem(next)
         }
@@ -244,7 +271,8 @@ class RunEngine(
         if (modifiers.removesWrongChoice) {
             problem = problem.copy(choices = problem.choices - problem.choices.first { it != problem.answer })
         }
-        var limit = Balance.timeLimitMillis(problem.difficulty, config.relaxed) * modifiers.timeMultiplier
+        var limit = Balance.timeLimitMillis(problem.difficulty, config.relaxed) *
+            modifiers.timeMultiplier * config.bonuses.timeMultiplier
         if (boss) limit *= Balance.BOSS_TIME_MULTIPLIER
         return s.copy(problem = problem, timeLimitMillis = limit.toLong())
     }
@@ -264,6 +292,7 @@ class RunEngine(
     private companion object {
         const val ENEMY_SALT = 0xE7E7L
         const val RELIC_SALT = 0x8E11CL
+        const val START_RELIC_SALT = 0x5747L
         val PLACEHOLDER_PROBLEM = Problem(School.ARITHMETIC, 0, "", "", emptyList())
     }
 }

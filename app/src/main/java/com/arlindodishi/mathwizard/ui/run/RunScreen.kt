@@ -48,6 +48,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
@@ -62,7 +63,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.arlindodishi.mathwizard.R
-import com.arlindodishi.mathwizard.data.PrefsSpireRecords
+import com.arlindodishi.mathwizard.appContainer
 import com.arlindodishi.mathwizard.engine.AnswerOutcome
 import com.arlindodishi.mathwizard.engine.Balance
 import com.arlindodishi.mathwizard.engine.Phase
@@ -76,9 +77,13 @@ import kotlin.math.roundToInt
 fun RunRoute(onExit: () -> Unit) {
     val context = LocalContext.current.applicationContext
     val viewModel: RunViewModel = viewModel(
-        factory = viewModelFactory { initializer { RunViewModel(PrefsSpireRecords(context)) } },
+        factory = viewModelFactory { initializer { RunViewModel(context.appContainer.meta) } },
     )
-    val ui by viewModel.ui.collectAsStateWithLifecycle()
+    val loaded by viewModel.ui.collectAsStateWithLifecycle()
+    val ui = loaded ?: run {
+        Box(Modifier.fillMaxSize().background(SpireColors.Night))
+        return
+    }
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
 
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { viewModel.pause() }
@@ -93,7 +98,12 @@ fun RunRoute(onExit: () -> Unit) {
     if (gameOver) {
         SummaryScreen(ui = ui, onAgain = viewModel::restart, onHome = onExit)
     } else {
-        RunScreen(ui = ui, onChoose = viewModel::choose, onContinue = viewModel::continueToNextFloor)
+        RunScreen(
+            ui = ui,
+            onChoose = viewModel::choose,
+            onHint = viewModel::useHint,
+            onContinue = viewModel::continueToNextFloor,
+        )
     }
 
     if (confirmLeave) {
@@ -112,7 +122,7 @@ fun RunRoute(onExit: () -> Unit) {
 }
 
 @Composable
-fun RunScreen(ui: RunUiState, onChoose: (String) -> Unit, onContinue: (String?) -> Unit) {
+fun RunScreen(ui: RunUiState, onChoose: (String) -> Unit, onHint: () -> Unit, onContinue: (String?) -> Unit) {
     val run = ui.run
     val feedback = ui.feedback
     val accent = run.problem.school.accent()
@@ -155,7 +165,14 @@ fun RunScreen(ui: RunUiState, onChoose: (String) -> Unit, onContinue: (String?) 
             Spacer(Modifier.height(Spacing.s))
             EnemyPanel(ui, accent, enemyShake.value, Modifier.weight(1f).fillMaxWidth())
             Spacer(Modifier.height(Spacing.m))
-            ProblemCard(feedback?.outcome?.problem ?: run.problem, feedback, accent, onChoose)
+            ProblemCard(
+                problem = feedback?.outcome?.problem ?: run.problem,
+                feedback = feedback,
+                accent = accent,
+                hintsLeft = if (feedback == null && run.problem.choices.size > 2) run.hintsLeft else 0,
+                onChoose = onChoose,
+                onHint = onHint,
+            )
         }
 
         Box(
@@ -343,7 +360,33 @@ private fun BoxScope.DamagePopup(ui: RunUiState) {
 }
 
 @Composable
-private fun ProblemCard(problem: Problem, feedback: Feedback?, accent: Color, onChoose: (String) -> Unit) {
+private fun ProblemCard(
+    problem: Problem,
+    feedback: Feedback?,
+    accent: Color,
+    hintsLeft: Int,
+    onChoose: (String) -> Unit,
+    onHint: () -> Unit,
+) {
+    Box(Modifier.fillMaxWidth()) {
+        ProblemCardContent(problem, feedback, accent, onChoose)
+        if (hintsLeft > 0) {
+            val description = pluralStringResource(R.plurals.run_hint_cd, hintsLeft, hintsLeft)
+            TextButton(
+                onClick = onHint,
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(Spacing.xs)
+                    .semantics { contentDescription = description },
+            ) {
+                Text("\uD83D\uDCA1 $hintsLeft", style = MaterialTheme.typography.titleMedium, color = SpireColors.Gold)
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProblemCardContent(problem: Problem, feedback: Feedback?, accent: Color, onChoose: (String) -> Unit) {
     Column(
         Modifier
             .fillMaxWidth()

@@ -47,9 +47,9 @@ object Relics {
 
     fun byId(id: String): Relic = requireNotNull(all.find { it.id == id }) { "Unknown relic $id" }
 
-    /** Up to [OFFER_SIZE] distinct relics the player does not hold yet. */
-    fun offer(held: List<Relic>, random: Random): List<Relic> =
-        all.filter { it !in held }.shuffled(random).take(OFFER_SIZE)
+    /** Up to [size] distinct relics the player does not hold yet. */
+    fun offer(held: List<Relic>, random: Random, size: Int = OFFER_SIZE): List<Relic> =
+        all.filter { it !in held }.shuffled(random).take(size)
 }
 
 /** Combined effect of all held relics. */

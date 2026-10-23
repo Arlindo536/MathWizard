@@ -25,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import com.arlindodishi.mathwizard.R
 import com.arlindodishi.mathwizard.engine.School
 import com.arlindodishi.mathwizard.ui.run.EnemyArt
+import com.arlindodishi.mathwizard.ui.upgrades.CrystalBadge
 import com.arlindodishi.mathwizard.ui.theme.SpireColors
 import com.arlindodishi.mathwizard.ui.theme.Spacing
 import com.arlindodishi.mathwizard.ui.theme.accent
@@ -33,7 +34,9 @@ import com.arlindodishi.mathwizard.ui.theme.accent
 fun HomeScreen(
     bestFloor: Int,
     runsPlayed: Int,
+    crystals: Int,
     onClimb: () -> Unit,
+    onUpgrades: () -> Unit,
     onClassic: () -> Unit,
     onStats: () -> Unit,
     onSettings: () -> Unit,
@@ -65,12 +68,15 @@ fun HomeScreen(
                 color = SpireColors.TextMuted,
             )
         }
-        Spacer(Modifier.height(Spacing.xl))
+        Spacer(Modifier.height(Spacing.m))
+        CrystalBadge(crystals)
+        Spacer(Modifier.height(Spacing.l))
         Button(onClick = onClimb, shape = RoundedCornerShape(14.dp), modifier = Modifier.fillMaxWidth().height(60.dp)) {
             Text(stringResource(R.string.home_climb), style = MaterialTheme.typography.titleLarge)
         }
         Spacer(Modifier.height(Spacing.m))
         listOf(
+            R.string.home_upgrades to onUpgrades,
             R.string.home_classic to onClassic,
             R.string.high_score to onStats,
             R.string.settings to onSettings,

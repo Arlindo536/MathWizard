@@ -20,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -53,10 +54,21 @@ fun SummaryScreen(ui: RunUiState, onAgain: () -> Unit, onHome: () -> Unit) {
             style = MaterialTheme.typography.displayLarge.copy(fontSize = MaterialTheme.typography.displayLarge.fontSize * 2),
             color = SpireColors.Gold,
         )
+        val reward = ui.reward
         Text(
-            if (ui.newRecord) stringResource(R.string.summary_new_record) else stringResource(R.string.summary_best, ui.bestFloor),
+            when {
+                reward == null -> ""
+                reward.newRecord -> stringResource(R.string.summary_new_record)
+                else -> stringResource(R.string.summary_best, reward.bestFloor)
+            },
             style = MaterialTheme.typography.titleLarge,
-            color = if (ui.newRecord) SpireColors.Gold else SpireColors.TextMuted,
+            color = if (reward?.newRecord == true) SpireColors.Gold else SpireColors.TextMuted,
+        )
+        Spacer(Modifier.height(Spacing.s))
+        Text(
+            if (reward != null) pluralStringResource(R.plurals.summary_crystals, reward.crystals, reward.crystals) else "",
+            style = MaterialTheme.typography.headlineMedium,
+            color = SpireColors.Crystal,
         )
         Spacer(Modifier.height(Spacing.xl))
         Row(

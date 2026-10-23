@@ -49,7 +49,6 @@
     <string name="run_leave_confirm">Abandon</string>
     <string name="run_leave_cancel">Keep climbing</string>
     <string name="floor_cleared_title">Floor %1$d cleared!</string>
-    <string name="floor_cleared_heal">+%1$d HP restored</string>
     <string name="floor_continue">Climb on</string>
     <string name="summary_title">The spire claims you</string>
     <string name="summary_floor">Floor reached</string>
@@ -103,4 +102,41 @@
     <string name="relic_phoenix_feather_desc">Once per climb, survive a fatal hit with 30 HP.</string>
     <string name="relic_giant_slayer">Giant Slayer</string>
     <string name="relic_giant_slayer_desc" formatted="false">Deal 50% more damage to bosses.</string>
+
+    <!-- Meta progression -->
+    <string name="home_upgrades">Upgrades</string>
+    <string name="upgrades_title">Upgrades</string>
+    <string name="upgrades_back">Back</string>
+    <string name="upgrade_level">Level %1$d/%2$d</string>
+    <string name="upgrade_max">Max</string>
+    <string name="upgrade_requires">Needs %1$s %2$d</string>
+    <string name="upgrade_buy_cd">Buy %1$s for %2$d crystals</string>
+    <string name="branch_vitality">Body</string>
+    <string name="branch_vitality_desc">Survive longer.</string>
+    <string name="branch_focus">Mind</string>
+    <string name="branch_focus_desc">Think with less pressure.</string>
+    <string name="branch_arcana">Arcana</string>
+    <string name="branch_arcana_desc">Hit harder, find better relics.</string>
+    <string name="upgrade_vitality">Vitality</string>
+    <string name="upgrade_vitality_desc">+10 max HP per level.</string>
+    <string name="upgrade_second_wind">Second Wind</string>
+    <string name="upgrade_second_wind_desc">Heal 5 more HP after each floor, per level.</string>
+    <string name="upgrade_focus">Focus</string>
+    <string name="upgrade_focus_desc" formatted="false">8% more time per problem, per level.</string>
+    <string name="upgrade_hint">Hints</string>
+    <string name="upgrade_hint_desc">+1 hint per climb. A hint hides two wrong answers.</string>
+    <string name="upgrade_power">Arcane Power</string>
+    <string name="upgrade_power_desc" formatted="false">5% more spell damage per level.</string>
+    <string name="upgrade_relic_insight">Relic Insight</string>
+    <string name="upgrade_relic_insight_desc">Choose from 4 relics instead of 3.</string>
+    <string name="upgrade_starting_relic">Heirloom</string>
+    <string name="upgrade_starting_relic_desc">Start every climb with a random relic.</string>
+    <plurals name="summary_crystals">
+        <item quantity="one">+%1$d crystal</item>
+        <item quantity="other">+%1$d crystals</item>
+    </plurals>
+    <plurals name="run_hint_cd">
+        <item quantity="one">Use a hint, %1$d left</item>
+        <item quantity="other">Use a hint, %1$d left</item>
+    </plurals>
 </resources>

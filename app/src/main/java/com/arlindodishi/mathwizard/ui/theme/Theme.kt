@@ -25,6 +25,7 @@ object SpireColors {
     val Danger = Color(0xFFFF4D6D)
     val Success = Color(0xFF4ADE80)
     val Gold = Color(0xFFFFD166)
+    val Crystal = Color(0xFF7DD3FC)
 }
 
 fun School.accent(): Color = when (this) {

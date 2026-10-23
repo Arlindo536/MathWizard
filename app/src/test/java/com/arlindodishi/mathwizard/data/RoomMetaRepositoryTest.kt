@@ -1,0 +1,89 @@
+package com.arlindodishi.mathwizard.data
+
+import android.content.Context
+import androidx.room.Room
+import androidx.test.core.app.ApplicationProvider
+import com.arlindodishi.mathwizard.data.db.AppDatabase
+import com.arlindodishi.mathwizard.engine.RunConfig
+import com.arlindodishi.mathwizard.engine.RunEngine
+import com.arlindodishi.mathwizard.engine.RunState
+import com.arlindodishi.mathwizard.engine.RunStats
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.test.runTest
+import org.junit.After
+import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
+import org.junit.Assert.assertTrue
+import org.junit.Before
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+
+@RunWith(RobolectricTestRunner::class)
+@Config(sdk = [34])
+class RoomMetaRepositoryTest {
+
+    private lateinit var db: AppDatabase
+    private lateinit var repo: RoomMetaRepository
+
+    @Before
+    fun setUp() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        db = Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).allowMainThreadQueries().build()
+        repo = RoomMetaRepository(db.metaDao(), clock = { 1_000L })
+    }
+
+    @After
+    fun tearDown() = db.close()
+
+    private fun finishedRun(floor: Int, stats: RunStats): RunState =
+        RunEngine(RunConfig(seed = 1L)).state.copy(floor = floor, stats = stats)
+
+    @Test
+    fun emptyDatabaseHasNoProgress() = runTest {
+        assertEquals(0, repo.profile.first().crystals)
+        assertEquals(Records(), repo.records.first())
+    }
+
+    @Test
+    fun recordingRunsCreditsCrystalsAndTracksBest() = runTest {
+        val first = repo.recordRun(finishedRun(6, RunStats(correct = 25, floorsCleared = 5, bossesDefeated = 1)), seed = 7L)
+        assertEquals(5 * 3 + 10 + 5, first.crystals)
+        assertTrue(first.newRecord)
+        assertEquals(6, first.bestFloor)
+
+        val second = repo.recordRun(finishedRun(3, RunStats(correct = 10, floorsCleared = 2)), seed = 8L)
+        assertFalse(second.newRecord)
+        assertEquals(6, second.bestFloor)
+
+        assertEquals(first.crystals + second.crystals, repo.profile.first().crystals)
+        assertEquals(Records(runsPlayed = 2, bestFloor = 6, totalCrystals = first.crystals + second.crystals), repo.records.first())
+    }
+
+    @Test
+    fun buyingSpendsCrystalsAndPersistsLevel() = runTest {
+        repo.recordRun(finishedRun(10, RunStats(floorsCleared = 10)), seed = 1L) // 30 crystals
+        assertTrue(repo.buy("vitality"))
+        val profile = repo.profile.first()
+        assertEquals(10, profile.crystals)
+        assertEquals(1, profile.level("vitality"))
+        assertFalse("second level costs 35", repo.buy("vitality"))
+        assertFalse("locked behind focus", repo.buy("hint"))
+        assertEquals(10, repo.profile.first().crystals)
+    }
+
+    @Test
+    fun legacyBestFloorIsImportedOnceIntoEmptyHistory() = runTest {
+        repo.importLegacyBest(9)
+        repo.importLegacyBest(12)
+        assertEquals(Records(runsPlayed = 1, bestFloor = 9, totalCrystals = 0), repo.records.first())
+    }
+
+    @Test
+    fun legacyImportSkippedWhenRunsExist() = runTest {
+        repo.recordRun(finishedRun(2, RunStats()), seed = 1L)
+        repo.importLegacyBest(9)
+        assertEquals(2, repo.records.first().bestFloor)
+    }
+}

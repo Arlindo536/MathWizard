@@ -1,7 +1,7 @@
 package com.arlindodishi.mathwizard.ui.run
 
-import com.arlindodishi.mathwizard.data.SpireRecords
 import com.arlindodishi.mathwizard.engine.AnswerOutcome
+import com.arlindodishi.mathwizard.engine.MetaProfile
 import com.arlindodishi.mathwizard.engine.Phase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
@@ -25,17 +25,7 @@ import org.junit.Test
 class RunViewModelTest {
 
     private val dispatcher = StandardTestDispatcher()
-
-    private class FakeRecords : SpireRecords {
-        override var bestFloor = 0
-        override var runsPlayed = 0
-        override fun recordRun(floor: Int): Boolean {
-            runsPlayed++
-            return (floor > bestFloor).also { if (it) bestFloor = floor }
-        }
-    }
-
-    private val records = FakeRecords()
+    private val meta = FakeMetaRepository()
 
     @Before
     fun setUp() = Dispatchers.setMain(dispatcher)
@@ -43,49 +33,77 @@ class RunViewModelTest {
     @After
     fun tearDown() = Dispatchers.resetMain()
 
-    private fun TestScope.newViewModel() =
-        RunViewModel(records, clock = { testScheduler.currentTime }, seeds = { 42L }, scope = backgroundScope)
+    private fun TestScope.newViewModel(): RunViewModel {
+        val vm = RunViewModel(meta, clock = { testScheduler.currentTime }, seeds = { 42L }, scope = backgroundScope)
+        runCurrent()
+        return vm
+    }
 
-    private fun RunViewModel.answerCorrectly() = choose(ui.value.run.problem.answer)
+    private val RunViewModel.state: RunUiState get() = ui.value!!
 
-    private fun RunViewModel.answerWrongly() = choose(ui.value.run.problem.choices.first { it != ui.value.run.problem.answer })
+    private fun RunViewModel.answerCorrectly() = choose(state.run.problem.answer)
+
+    private fun RunViewModel.answerWrongly() = choose(state.run.problem.choices.first { it != state.run.problem.answer })
 
     private fun TestScope.finishFeedback() = advanceTimeBy(RunViewModel.FEEDBACK_MILLIS + 1)
 
     @Test
+    fun runStartsOnceProfileLoads() = runTest(dispatcher) {
+        val vm = newViewModel()
+        assertNotNull(vm.ui.value)
+        assertEquals(1, vm.state.run.floor)
+    }
+
+    @Test
+    fun upgradesApplyToNewRun() = runTest(dispatcher) {
+        meta.profile.value = MetaProfile(levels = mapOf("vitality" to 2, "hint" to 1))
+        val vm = newViewModel()
+        assertEquals(120, vm.state.run.playerMaxHp)
+        assertEquals(1, vm.state.run.hintsLeft)
+    }
+
+    @Test
     fun correctAnswerShowsFeedbackThenNextProblem() = runTest(dispatcher) {
         val vm = newViewModel()
-        val first = vm.ui.value.run.problem
+        val first = vm.state.run.problem
         vm.answerCorrectly()
-        val feedback = vm.ui.value.feedback
+        val feedback = vm.state.feedback
         assertNotNull(feedback)
-        feedback!!
-        assertTrue(feedback.outcome is AnswerOutcome.Hit)
+        assertTrue(feedback!!.outcome is AnswerOutcome.Hit)
         assertEquals(first, feedback.outcome.problem)
         finishFeedback()
-        assertNull(vm.ui.value.feedback)
-        assertFalse(first == vm.ui.value.run.problem)
+        assertNull(vm.state.feedback)
+        assertFalse(first == vm.state.run.problem)
     }
 
     @Test
     fun inputIsIgnoredDuringFeedback() = runTest(dispatcher) {
         val vm = newViewModel()
         vm.answerCorrectly()
-        val answered = vm.ui.value.run.stats.answered
+        val answered = vm.state.run.stats.answered
         vm.answerCorrectly()
-        assertEquals(answered, vm.ui.value.run.stats.answered)
+        assertEquals(answered, vm.state.run.stats.answered)
+    }
+
+    @Test
+    fun hintRemovesChoices() = runTest(dispatcher) {
+        meta.profile.value = MetaProfile(levels = mapOf("hint" to 1))
+        val vm = newViewModel()
+        vm.useHint()
+        assertEquals(2, vm.state.run.problem.choices.size)
+        assertEquals(0, vm.state.run.hintsLeft)
     }
 
     @Test
     fun timerRunsOutIntoMiss() = runTest(dispatcher) {
         val vm = newViewModel()
-        val limit = vm.ui.value.run.timeLimitMillis
+        val limit = vm.state.run.timeLimitMillis
         advanceTimeBy(limit / 2)
-        assertTrue(vm.ui.value.timeLeftMillis in 1 until limit)
+        assertTrue(vm.state.timeLeftMillis in 1 until limit)
         advanceTimeBy(limit / 2 + RunViewModel.TICK_MILLIS * 2)
-        val outcome = vm.ui.value.feedback?.outcome
+        val outcome = vm.state.feedback?.outcome
         assertTrue(outcome is AnswerOutcome.Miss && outcome.timedOut)
-        assertTrue(vm.ui.value.run.playerHp < vm.ui.value.run.playerMaxHp)
+        assertTrue(vm.state.run.playerHp < vm.state.run.playerMaxHp)
     }
 
     @Test
@@ -93,62 +111,71 @@ class RunViewModelTest {
         val vm = newViewModel()
         advanceTimeBy(1_000)
         vm.pause()
-        val left = vm.ui.value.timeLeftMillis
+        val left = vm.state.timeLeftMillis
         advanceTimeBy(60_000)
-        assertNull(vm.ui.value.feedback)
-        assertEquals(left, vm.ui.value.timeLeftMillis)
+        assertNull(vm.state.feedback)
+        assertEquals(left, vm.state.timeLeftMillis)
         vm.resume()
         advanceTimeBy(500)
-        assertTrue(vm.ui.value.timeLeftMillis < left)
+        assertTrue(vm.state.timeLeftMillis < left)
     }
 
     @Test
     fun clearingFloorWaitsForContinue() = runTest(dispatcher) {
         val vm = newViewModel()
-        while (vm.ui.value.run.phase == Phase.FIGHTING) {
+        while (vm.state.run.phase == Phase.FIGHTING) {
             vm.answerCorrectly()
             finishFeedback()
         }
-        assertEquals(Phase.FLOOR_CLEARED, vm.ui.value.run.phase)
+        assertEquals(Phase.FLOOR_CLEARED, vm.state.run.phase)
         advanceTimeBy(60_000)
-        assertEquals(Phase.FLOOR_CLEARED, vm.ui.value.run.phase)
+        assertEquals(Phase.FLOOR_CLEARED, vm.state.run.phase)
         vm.continueToNextFloor()
-        assertEquals(2, vm.ui.value.run.floor)
-        assertEquals(vm.ui.value.run.timeLimitMillis, vm.ui.value.timeLeftMillis)
+        assertEquals(2, vm.state.run.floor)
+        assertEquals(vm.state.run.timeLimitMillis, vm.state.timeLeftMillis)
     }
 
     @Test
     fun pickingRelicFromOfferAddsItAndAdvances() = runTest(dispatcher) {
         val vm = newViewModel()
-        while (vm.ui.value.run.phase == Phase.FIGHTING) {
+        while (vm.state.run.phase == Phase.FIGHTING) {
             vm.answerCorrectly()
             finishFeedback()
         }
-        val offer = vm.ui.value.run.relicOffer
+        val offer = vm.state.run.relicOffer
         assertEquals(3, offer.size)
         vm.continueToNextFloor(offer[1].id)
-        assertEquals(listOf(offer[1]), vm.ui.value.run.relics)
-        assertEquals(2, vm.ui.value.run.floor)
+        assertEquals(listOf(offer[1]), vm.state.run.relics)
+        assertEquals(2, vm.state.run.floor)
     }
 
     @Test
-    fun gameOverRecordsRunOnceAndRestartBeginsFresh() = runTest(dispatcher) {
+    fun gameOverRecordsRunOnceWithRewardAndRestartBeginsFresh() = runTest(dispatcher) {
         val vm = newViewModel()
-        while (vm.ui.value.run.phase != Phase.GAME_OVER) {
+        while (vm.state.run.phase == Phase.FIGHTING) {
+            vm.answerCorrectly()
+            finishFeedback()
+        }
+        vm.continueToNextFloor()
+        while (vm.state.run.phase != Phase.GAME_OVER) {
             vm.answerWrongly()
             finishFeedback()
         }
-        assertEquals(1, records.runsPlayed)
-        assertEquals(1, records.bestFloor)
-        assertTrue(vm.ui.value.newRecord)
+        assertEquals(1, meta.recorded.size)
+        val reward = vm.state.reward
+        assertNotNull(reward)
+        assertTrue(reward!!.newRecord)
+        assertEquals(2, reward.bestFloor)
+        assertTrue(reward.crystals >= 3)
+        assertEquals(reward.crystals, meta.profile.value.crystals)
         advanceTimeBy(60_000)
-        assertEquals(1, records.runsPlayed)
+        assertEquals(1, meta.recorded.size)
 
         vm.restart()
         runCurrent()
-        assertEquals(Phase.FIGHTING, vm.ui.value.run.phase)
-        assertEquals(1, vm.ui.value.run.floor)
-        assertEquals(vm.ui.value.run.playerMaxHp, vm.ui.value.run.playerHp)
-        assertFalse(vm.ui.value.newRecord)
+        assertEquals(Phase.FIGHTING, vm.state.run.phase)
+        assertEquals(1, vm.state.run.floor)
+        assertEquals(vm.state.run.playerMaxHp, vm.state.run.playerHp)
+        assertNull(vm.state.reward)
     }
 }

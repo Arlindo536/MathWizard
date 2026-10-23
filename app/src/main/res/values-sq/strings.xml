@@ -48,7 +48,6 @@
     <string name="run_leave_confirm">Braktise</string>
     <string name="run_leave_cancel">Vazhdo ngjitjen</string>
     <string name="floor_cleared_title">Kati %1$d u pastrua!</string>
-    <string name="floor_cleared_heal">+%1$d HP u rikthyen</string>
     <string name="floor_continue">Vazhdo lart</string>
     <string name="summary_title">Kulla të mposhti</string>
     <string name="summary_floor">Kati i arritur</string>
@@ -102,4 +101,41 @@
     <string name="relic_phoenix_feather_desc">Një herë në ngjitje, i mbijeton një goditjeje vdekjeprurëse me 30 HP.</string>
     <string name="relic_giant_slayer">Vrasësi i Gjigantëve</string>
     <string name="relic_giant_slayer_desc" formatted="false">Godet boss-ët 50% më fort.</string>
+
+    <!-- Meta progression -->
+    <string name="home_upgrades">Përmirësimet</string>
+    <string name="upgrades_title">Përmirësimet</string>
+    <string name="upgrades_back">Mbrapa</string>
+    <string name="upgrade_level">Niveli %1$d/%2$d</string>
+    <string name="upgrade_max">Maks</string>
+    <string name="upgrade_requires">Kërkon %1$s %2$d</string>
+    <string name="upgrade_buy_cd">Bli %1$s për %2$d kristale</string>
+    <string name="branch_vitality">Trupi</string>
+    <string name="branch_vitality_desc">Mbijeto më gjatë.</string>
+    <string name="branch_focus">Mendja</string>
+    <string name="branch_focus_desc">Mendo me më pak presion.</string>
+    <string name="branch_arcana">Arkana</string>
+    <string name="branch_arcana_desc">Godit më fort, gjej relike më të mira.</string>
+    <string name="upgrade_vitality">Vitaliteti</string>
+    <string name="upgrade_vitality_desc">+10 HP maksimale për çdo nivel.</string>
+    <string name="upgrade_second_wind">Fryma e Dytë</string>
+    <string name="upgrade_second_wind_desc">Shërohesh 5 HP më shumë pas çdo kati, për çdo nivel.</string>
+    <string name="upgrade_focus">Përqendrimi</string>
+    <string name="upgrade_focus_desc" formatted="false">8% më shumë kohë për çdo problem, për çdo nivel.</string>
+    <string name="upgrade_hint">Ndihmat</string>
+    <string name="upgrade_hint_desc">+1 ndihmë në çdo ngjitje. Një ndihmë fsheh dy përgjigje të gabuara.</string>
+    <string name="upgrade_power">Fuqia Arkane</string>
+    <string name="upgrade_power_desc" formatted="false">Magjitë godasin 5% më fort për çdo nivel.</string>
+    <string name="upgrade_relic_insight">Njohja e Relikeve</string>
+    <string name="upgrade_relic_insight_desc">Zgjidh nga 4 relike në vend të 3.</string>
+    <string name="upgrade_starting_relic">Trashëgimia</string>
+    <string name="upgrade_starting_relic_desc">Nis çdo ngjitje me një relike të rastësishme.</string>
+    <plurals name="summary_crystals">
+        <item quantity="one">+%1$d kristal</item>
+        <item quantity="other">+%1$d kristale</item>
+    </plurals>
+    <plurals name="run_hint_cd">
+        <item quantity="one">Përdor një ndihmë, %1$d mbetet</item>
+        <item quantity="other">Përdor një ndihmë, %1$d mbeten</item>
+    </plurals>
 </resources>

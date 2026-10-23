@@ -106,3 +106,19 @@ Pure Kotlin module `:engine`, no Android dependencies, tested with `./gradlew :e
   up to 75, then a × b + c × d or two-step forms). A boss takes 4-9 answers at moderate speed.
 - Test builds are release builds signed with the owner's key (same certificate as the v1.0 APK,
   so they install over it). `versionCode` follows the step number for now.
+
+## 7. Meta progression (step 5)
+
+- Engine `Meta.kt`: `MetaProfile(crystals, levels)` with pure `buy()` rules (cost per level,
+  prerequisite level, max level) and `bonuses()` -> `RunBonuses` passed in `RunConfig`.
+  Seven upgrades in three branches: Body (Vitality +10 HP/level, Second Wind +5 heal/level),
+  Mind (Focus +8% time/level, Hints: hide two wrong answers once per hint), Arcana (Arcane
+  Power +5% damage/level, Relic Insight: 4 relic choices, Heirloom: start with a random relic).
+  Full tree costs 1,465 crystals.
+- Crystals per run = 3 × floors cleared + 10 × bosses + correct answers / 5.
+- Persistence: Room database `mathwizard.db` (tables `runs`, `upgrades`, `wallet`; schema
+  exported to `app/schemas`). Recording a run and buying an upgrade are single transactions.
+  The step-3 best floor in `SharedPreferences("Spire")` is imported once as a legacy run.
+  DataStore arrives with the settings screen (step 8).
+- `AppContainer` (in `MathWizardApplication`) is the manual DI root. Repository tests run on
+  the JVM with Robolectric and an in-memory database.
