@@ -21,6 +21,11 @@ interface ProblemGenerator {
 object Problems {
     private val generators: Map<School, ProblemGenerator> = listOf<ProblemGenerator>(
         ArithmeticGenerator,
+        FractionsGenerator,
+        AlgebraGenerator,
+        PowersGenerator,
+        GeometryGenerator,
+        SequencesGenerator,
     ).associateBy { it.school }
 
     val availableSchools: Set<School> get() = generators.keys
@@ -34,13 +39,16 @@ object Problems {
 
 /**
  * Picks [CHOICE_COUNT] - 1 distinct wrong options from [candidates] (filtered by [isValid]),
- * tops up with nearby values if needed, and returns all options shuffled.
+ * tops up with [nearby] values (step 1, 2, ...) if needed, and returns all options shuffled.
+ * Distinctness is by value ([T.equals]), so 2/4 and 1/2 never appear together.
  */
-internal fun buildIntChoices(
-    answer: Int,
-    candidates: List<Int>,
+internal fun <T> buildChoices(
+    answer: T,
+    candidates: List<T>,
     random: Random,
-    isValid: (Int) -> Boolean = { it >= 0 },
+    isValid: (T) -> Boolean,
+    nearby: (step: Int) -> List<T>,
+    format: (T) -> String = { it.toString() },
 ): List<String> {
     val wrong = candidates
         .filter { it != answer && isValid(it) }
@@ -50,12 +58,19 @@ internal fun buildIntChoices(
         .toMutableList()
     var step = 1
     while (wrong.size < CHOICE_COUNT - 1) {
-        for (candidate in listOf(answer + step, answer - step)) {
-            if (wrong.size < CHOICE_COUNT - 1 && isValid(candidate) && candidate !in wrong) {
+        for (candidate in nearby(step)) {
+            if (wrong.size < CHOICE_COUNT - 1 && candidate != answer && isValid(candidate) && candidate !in wrong) {
                 wrong += candidate
             }
         }
         step++
     }
-    return (wrong + answer).shuffled(random).map { it.toString() }
+    return (wrong + answer).shuffled(random).map(format)
 }
+
+internal fun buildIntChoices(
+    answer: Int,
+    candidates: List<Int>,
+    random: Random,
+    isValid: (Int) -> Boolean = { it >= 0 },
+): List<String> = buildChoices(answer, candidates, random, isValid, nearby = { listOf(answer + it, answer - it) })

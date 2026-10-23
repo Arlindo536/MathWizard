@@ -10,6 +10,7 @@ import com.arlindodishi.mathwizard.engine.Phase
 import com.arlindodishi.mathwizard.engine.RunConfig
 import com.arlindodishi.mathwizard.engine.RunEngine
 import com.arlindodishi.mathwizard.engine.RunState
+import com.arlindodishi.mathwizard.engine.School
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -41,6 +42,7 @@ data class RunUiState(
 
 class RunViewModel(
     private val meta: MetaRepository,
+    private val school: School = School.ARITHMETIC,
     private val clock: () -> Long = SystemClock::elapsedRealtime,
     private val seeds: () -> Long = { Random.nextLong() },
     /** Injectable so tests can run the endless timer loop in a scope they control. */
@@ -119,7 +121,7 @@ class RunViewModel(
     private suspend fun startRun() {
         val bonuses = meta.profile.first().bonuses()
         seed = seeds()
-        engine = RunEngine(RunConfig(seed = seed, bonuses = bonuses))
+        engine = RunEngine(RunConfig(seed = seed, school = school, bonuses = bonuses))
         startProblemTimer()
         _ui.value = RunUiState(
             run = engine.state,

@@ -2,11 +2,14 @@ package com.arlindodishi.mathwizard.engine
 
 /**
  * Independent checker for generated prompts: a tiny recursive-descent evaluator over
- * + − × ÷ and parentheses. Fails if a division is not exact.
+ * + − × ÷, parentheses, superscript exponents (7²) and √ / ∛ prefixes.
+ * Fails if a division or a root is not exact.
  */
 object ExpressionEvaluator {
+    private const val SUPERSCRIPTS = "⁰¹²³⁴⁵⁶⁷⁸⁹"
+
     fun evaluate(expression: String): Int {
-        val tokens = Regex("""\d+|[+−×÷()]""").findAll(expression).map { it.value }.toList()
+        val tokens = Regex("""\d+|[⁰¹²³⁴⁵⁶⁷⁸⁹]+|[+−×÷()√∛]""").findAll(expression).map { it.value }.toList()
         val parser = Parser(tokens)
         val value = parser.expression()
         check(parser.done()) { "Trailing tokens in '$expression'" }
@@ -44,6 +47,24 @@ object ExpressionEvaluator {
         }
 
         private fun factor(): Int {
+            val token = tokens[pos]
+            if (token == "√" || token == "∛") {
+                pos++
+                val inner = factor()
+                val degree = if (token == "√") 2 else 3
+                val root = (0..inner).first { power(it, degree) >= inner }
+                check(power(root, degree) == inner) { "Inexact root of $inner" }
+                return root
+            }
+            var value = primary()
+            if (!done() && tokens[pos][0] in SUPERSCRIPTS) {
+                val exponent = tokens[pos++].map { SUPERSCRIPTS.indexOf(it) }.joinToString("").toInt()
+                value = power(value, exponent)
+            }
+            return value
+        }
+
+        private fun primary(): Int {
             val token = tokens[pos++]
             if (token == "(") {
                 val value = expression()
@@ -52,5 +73,7 @@ object ExpressionEvaluator {
             }
             return token.toInt()
         }
+
+        private fun power(base: Int, exponent: Int): Int = (0 until exponent).fold(1) { acc, _ -> acc * base }
     }
 }

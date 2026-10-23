@@ -122,3 +122,21 @@ Pure Kotlin module `:engine`, no Android dependencies, tested with `./gradlew :e
   DataStore arrives with the settings screen (step 8).
 - `AppContainer` (in `MathWizardApplication`) is the manual DI root. Repository tests run on
   the JVM with Robolectric and an in-memory database.
+
+## 8. Spell schools (step 6)
+
+- Five new pure generators, each with tiers by difficulty and a multi-step boss variant:
+  `FractionsGenerator` (exact `Fraction` type, answers in lowest terms, percentages),
+  `AlgebraGenerator` (linear equations with a positive whole solution), `PowersGenerator`
+  (superscripts, exact √ and ∛), `GeometryGenerator` (word problems via `promptKey` +
+  `promptArgs`, localised in the app), `SequencesGenerator` (wrong choices are rejected if they
+  fit any simple rule, so each sequence has one sensible answer).
+- Tests check every school independently: a rational evaluator for fractions, substitution and
+  uniqueness for equations, an extended expression evaluator for powers, formula recomputation
+  for geometry, and an independent rule checker for sequences.
+- Each school has 3 enemies and a boss. Schools unlock in order through the Upgrades screen
+  (40, 80, 120, 160, 200 crystals). The player picks a school before each climb.
+- Room schema v2 adds `runs.school` (migration tested with `MigrationTestHelper`); best floor
+  and "new record" are tracked per school.
+- Known limitation: generators pick uniformly among unlocked kinds, so easy kinds still appear at
+  high difficulty. Weighting newer kinds is part of the balancing pass (step 9).

@@ -23,14 +23,17 @@ abstract class MetaDao {
     )
     abstract fun observeRecords(): Flow<RecordsRow>
 
+    @Query("SELECT school, MAX(floor) AS bestFloor FROM runs GROUP BY school")
+    abstract fun observeBestBySchool(): Flow<List<SchoolBestRow>>
+
     @Query("SELECT COALESCE((SELECT crystals FROM wallet WHERE id = 0), 0)")
     abstract suspend fun crystals(): Int
 
     @Query("SELECT * FROM upgrades")
     abstract suspend fun upgrades(): List<UpgradeEntity>
 
-    @Query("SELECT COALESCE(MAX(floor), 0) FROM runs")
-    abstract suspend fun bestFloor(): Int
+    @Query("SELECT COALESCE(MAX(floor), 0) FROM runs WHERE school = :school")
+    abstract suspend fun bestFloor(school: String): Int
 
     @Query("SELECT COUNT(*) FROM runs")
     abstract suspend fun runCount(): Int
@@ -44,10 +47,10 @@ abstract class MetaDao {
     @Upsert
     abstract suspend fun upsertUpgrade(upgrade: UpgradeEntity)
 
-    /** Saves the run and credits its crystals atomically. Returns the previous best floor. */
+    /** Saves the run and credits its crystals atomically. Returns the previous best in its school. */
     @Transaction
     open suspend fun recordRun(run: RunEntity): Int {
-        val previousBest = bestFloor()
+        val previousBest = bestFloor(run.school)
         insertRun(run)
         upsertWallet(WalletEntity(crystals = crystals() + run.crystalsEarned))
         return previousBest

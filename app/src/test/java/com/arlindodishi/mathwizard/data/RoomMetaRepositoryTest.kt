@@ -8,6 +8,7 @@ import com.arlindodishi.mathwizard.engine.RunConfig
 import com.arlindodishi.mathwizard.engine.RunEngine
 import com.arlindodishi.mathwizard.engine.RunState
 import com.arlindodishi.mathwizard.engine.RunStats
+import com.arlindodishi.mathwizard.engine.School
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -37,8 +38,8 @@ class RoomMetaRepositoryTest {
     @After
     fun tearDown() = db.close()
 
-    private fun finishedRun(floor: Int, stats: RunStats): RunState =
-        RunEngine(RunConfig(seed = 1L)).state.copy(floor = floor, stats = stats)
+    private fun finishedRun(floor: Int, stats: RunStats, school: School = School.ARITHMETIC): RunState =
+        RunEngine(RunConfig(seed = 1L, school = school)).state.copy(floor = floor, stats = stats)
 
     @Test
     fun emptyDatabaseHasNoProgress() = runTest {
@@ -85,5 +86,15 @@ class RoomMetaRepositoryTest {
         repo.recordRun(finishedRun(2, RunStats()), seed = 1L)
         repo.importLegacyBest(9)
         assertEquals(2, repo.records.first().bestFloor)
+    }
+
+    @Test
+    fun recordsAreKeptPerSchool() = runTest {
+        repo.recordRun(finishedRun(8, RunStats()), seed = 1L)
+        val fractions = repo.recordRun(finishedRun(3, RunStats(), School.FRACTIONS), seed = 2L)
+        assertTrue("first Fractions run is a Fractions record", fractions.newRecord)
+        assertEquals(3, fractions.bestFloor)
+        assertEquals(mapOf(School.ARITHMETIC to 8, School.FRACTIONS to 3), repo.bestBySchool.first())
+        assertEquals(8, repo.records.first().bestFloor)
     }
 }

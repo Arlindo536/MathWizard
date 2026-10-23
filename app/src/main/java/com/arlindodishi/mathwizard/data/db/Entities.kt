@@ -1,5 +1,6 @@
 package com.arlindodishi.mathwizard.data.db
 
+import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 
@@ -16,6 +17,8 @@ data class RunEntity(
     val bossesDefeated: Int,
     val crystalsEarned: Int,
     val legacy: Boolean = false,
+    /** [com.arlindodishi.mathwizard.engine.School] name; added in schema version 2. */
+    @ColumnInfo(defaultValue = "ARITHMETIC") val school: String = "ARITHMETIC",
 )
 
 @Entity(tableName = "upgrades")
@@ -26,3 +29,5 @@ data class UpgradeEntity(@PrimaryKey val id: String, val level: Int)
 data class WalletEntity(@PrimaryKey val id: Int = 0, val crystals: Int)
 
 data class RecordsRow(val runsPlayed: Int, val bestFloor: Int, val totalCrystals: Int)
+
+data class SchoolBestRow(val school: String, val bestFloor: Int)

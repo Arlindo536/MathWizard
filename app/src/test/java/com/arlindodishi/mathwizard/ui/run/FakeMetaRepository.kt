@@ -12,6 +12,7 @@ import kotlinx.coroutines.flow.update
 class FakeMetaRepository(initial: MetaProfile = MetaProfile()) : MetaRepository {
     override val profile = MutableStateFlow(initial)
     override val records = MutableStateFlow(Records())
+    override val bestBySchool = MutableStateFlow(emptyMap<com.arlindodishi.mathwizard.engine.School, Int>())
     val recorded = mutableListOf<RunState>()
 
     override suspend fun recordRun(state: RunState, seed: Long): RunReward {

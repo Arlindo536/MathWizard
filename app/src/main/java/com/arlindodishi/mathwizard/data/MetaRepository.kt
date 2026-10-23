@@ -5,18 +5,23 @@ import com.arlindodishi.mathwizard.data.db.RunEntity
 import com.arlindodishi.mathwizard.engine.MetaProfile
 import com.arlindodishi.mathwizard.engine.MetaRewards
 import com.arlindodishi.mathwizard.engine.RunState
+import com.arlindodishi.mathwizard.engine.School
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 
 data class Records(val runsPlayed: Int = 0, val bestFloor: Int = 0, val totalCrystals: Int = 0)
 
+/** [newRecord] and [bestFloor] are for the run's own school. */
 data class RunReward(val crystals: Int, val newRecord: Boolean, val bestFloor: Int)
 
 /** Progress kept between runs: crystals, upgrades and finished climbs. */
 interface MetaRepository {
     val profile: Flow<MetaProfile>
     val records: Flow<Records>
+
+    /** Best floor reached in each school that has been played. */
+    val bestBySchool: Flow<Map<School, Int>>
 
     /** Stores a finished run and credits its crystals. */
     suspend fun recordRun(state: RunState, seed: Long): RunReward
@@ -38,6 +43,11 @@ class RoomMetaRepository(
     override val records: Flow<Records> =
         dao.observeRecords().map { Records(it.runsPlayed, it.bestFloor, it.totalCrystals) }
 
+    override val bestBySchool: Flow<Map<School, Int>> =
+        dao.observeBestBySchool().map { rows ->
+            rows.mapNotNull { row -> School.entries.find { it.name == row.school }?.let { it to row.bestFloor } }.toMap()
+        }
+
     override suspend fun recordRun(state: RunState, seed: Long): RunReward {
         val crystals = MetaRewards.crystalsFor(state.stats)
         val previousBest = dao.recordRun(
@@ -50,6 +60,7 @@ class RoomMetaRepository(
                 bestStreak = state.stats.bestStreak,
                 bossesDefeated = state.stats.bossesDefeated,
                 crystalsEarned = crystals,
+                school = state.problem.school.name,
             ),
         )
         return RunReward(crystals, newRecord = state.floor > previousBest, bestFloor = maxOf(previousBest, state.floor))

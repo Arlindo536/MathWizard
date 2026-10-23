@@ -21,7 +21,9 @@ class AppContainer(context: Context) {
     private val appContext = context.applicationContext
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
-    private val database = Room.databaseBuilder(appContext, AppDatabase::class.java, "mathwizard.db").build()
+    private val database = Room.databaseBuilder(appContext, AppDatabase::class.java, "mathwizard.db")
+        .addMigrations(*AppDatabase.MIGRATIONS)
+        .build()
 
     private val roomMeta = RoomMetaRepository(database.metaDao())
     val meta: MetaRepository = roomMeta

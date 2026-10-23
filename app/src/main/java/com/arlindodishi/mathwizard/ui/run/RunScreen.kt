@@ -68,16 +68,18 @@ import com.arlindodishi.mathwizard.engine.AnswerOutcome
 import com.arlindodishi.mathwizard.engine.Balance
 import com.arlindodishi.mathwizard.engine.Phase
 import com.arlindodishi.mathwizard.engine.Problem
+import com.arlindodishi.mathwizard.engine.School
+import com.arlindodishi.mathwizard.ui.schools.problemText
 import com.arlindodishi.mathwizard.ui.theme.SpireColors
 import com.arlindodishi.mathwizard.ui.theme.Spacing
 import com.arlindodishi.mathwizard.ui.theme.accent
 import kotlin.math.roundToInt
 
 @Composable
-fun RunRoute(onExit: () -> Unit) {
+fun RunRoute(school: School, onExit: () -> Unit) {
     val context = LocalContext.current.applicationContext
     val viewModel: RunViewModel = viewModel(
-        factory = viewModelFactory { initializer { RunViewModel(context.appContainer.meta) } },
+        factory = viewModelFactory { initializer { RunViewModel(context.appContainer.meta, school) } },
     )
     val loaded by viewModel.ui.collectAsStateWithLifecycle()
     val ui = loaded ?: run {
@@ -396,9 +398,11 @@ private fun ProblemCardContent(problem: Problem, feedback: Feedback?, accent: Co
             .padding(Spacing.m),
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
+        val text = problemText(problem)
         Text(
-            problem.prompt,
-            style = MaterialTheme.typography.displayMedium,
+            text,
+            // Word problems and long sequences get a smaller size so they fit on one or two lines.
+            style = if (text.length > 14) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.displayMedium,
             color = SpireColors.Text,
             textAlign = TextAlign.Center,
             modifier = Modifier.padding(vertical = Spacing.m),
@@ -535,6 +539,26 @@ private fun enemyEmoji(id: String): String = when (id) {
     "magma_golem" -> "🪨"   // 🪨
     "blaze_hound" -> "🐺"   // 🐺
     "inferno_drake" -> "🐉" // 🐉
+    "tide_sprite" -> "🧚"
+    "frost_eel" -> "🐟"
+    "mist_crab" -> "🦀"
+    "abyssal_leviathan" -> "🐋"
+    "spark_bat" -> "🦇"
+    "storm_beetle" -> "🪲"
+    "volt_serpent" -> "🐍"
+    "thunder_titan" -> "🌩️"
+    "burrow_mole" -> "🦔"
+    "stone_tortoise" -> "🐢"
+    "thorn_beast" -> "🦏"
+    "mountain_giant" -> "🗿"
+    "prism_moth" -> "🦋"
+    "halo_wisp" -> "✨"
+    "mirror_knight" -> "🤺"
+    "solar_sphinx" -> "🦁"
+    "shade_cat" -> "🐈"
+    "echo_wraith" -> "👻"
+    "void_spider" -> "🕷️"
+    "night_lich" -> "💀"
     "wizard" -> "🧙"        // 🧙
     else -> "👾"            // 👾
 }
@@ -547,5 +571,25 @@ fun enemyNameRes(id: String): Int = when (id) {
     "magma_golem" -> R.string.enemy_magma_golem
     "blaze_hound" -> R.string.enemy_blaze_hound
     "inferno_drake" -> R.string.enemy_inferno_drake
+    "tide_sprite" -> R.string.enemy_tide_sprite
+    "frost_eel" -> R.string.enemy_frost_eel
+    "mist_crab" -> R.string.enemy_mist_crab
+    "abyssal_leviathan" -> R.string.enemy_abyssal_leviathan
+    "spark_bat" -> R.string.enemy_spark_bat
+    "storm_beetle" -> R.string.enemy_storm_beetle
+    "volt_serpent" -> R.string.enemy_volt_serpent
+    "thunder_titan" -> R.string.enemy_thunder_titan
+    "burrow_mole" -> R.string.enemy_burrow_mole
+    "stone_tortoise" -> R.string.enemy_stone_tortoise
+    "thorn_beast" -> R.string.enemy_thorn_beast
+    "mountain_giant" -> R.string.enemy_mountain_giant
+    "prism_moth" -> R.string.enemy_prism_moth
+    "halo_wisp" -> R.string.enemy_halo_wisp
+    "mirror_knight" -> R.string.enemy_mirror_knight
+    "solar_sphinx" -> R.string.enemy_solar_sphinx
+    "shade_cat" -> R.string.enemy_shade_cat
+    "echo_wraith" -> R.string.enemy_echo_wraith
+    "void_spider" -> R.string.enemy_void_spider
+    "night_lich" -> R.string.enemy_night_lich
     else -> R.string.monster_label
 }

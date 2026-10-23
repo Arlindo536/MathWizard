@@ -44,8 +44,10 @@ import com.arlindodishi.mathwizard.R
 import com.arlindodishi.mathwizard.appContainer
 import com.arlindodishi.mathwizard.engine.Branch
 import com.arlindodishi.mathwizard.engine.MetaProfile
+import com.arlindodishi.mathwizard.engine.School
 import com.arlindodishi.mathwizard.engine.Upgrade
 import com.arlindodishi.mathwizard.engine.Upgrades
+import com.arlindodishi.mathwizard.ui.schools.schoolUi
 import com.arlindodishi.mathwizard.ui.theme.SpireColors
 import com.arlindodishi.mathwizard.ui.theme.Spacing
 
@@ -201,6 +203,7 @@ private fun LevelPips(level: Int, max: Int) {
 private data class LabelUi(val emoji: String, @param:StringRes val name: Int, @param:StringRes val description: Int)
 
 private fun branchUi(branch: Branch): LabelUi = when (branch) {
+    Branch.SCHOOLS -> LabelUi("📚", R.string.branch_schools, R.string.branch_schools_desc)
     Branch.VITALITY -> LabelUi("❤️", R.string.branch_vitality, R.string.branch_vitality_desc)
     Branch.FOCUS -> LabelUi("⏳", R.string.branch_focus, R.string.branch_focus_desc)
     Branch.ARCANA -> LabelUi("✨", R.string.branch_arcana, R.string.branch_arcana_desc)
@@ -214,5 +217,8 @@ private fun upgradeUi(id: String): LabelUi = when (id) {
     "power" -> LabelUi("🔥", R.string.upgrade_power, R.string.upgrade_power_desc)
     "relic_insight" -> LabelUi("🔍", R.string.upgrade_relic_insight, R.string.upgrade_relic_insight_desc)
     "starting_relic" -> LabelUi("🎁", R.string.upgrade_starting_relic, R.string.upgrade_starting_relic_desc)
-    else -> error("No UI for upgrade $id")
+    else -> School.entries.find { Upgrades.unlockFor(it) == id }
+        ?.let { schoolUi(it) }
+        ?.let { LabelUi(it.emoji, it.name, R.string.upgrade_school_desc) }
+        ?: error("No UI for upgrade $id")
 }

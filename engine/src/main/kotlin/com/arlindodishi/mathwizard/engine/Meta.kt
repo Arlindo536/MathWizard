@@ -1,6 +1,6 @@
 package com.arlindodishi.mathwizard.engine
 
-enum class Branch { VITALITY, FOCUS, ARCANA }
+enum class Branch { SCHOOLS, VITALITY, FOCUS, ARCANA }
 
 /**
  * A permanent upgrade bought with Mana crystals between runs. [costs] has one entry per level;
@@ -25,7 +25,16 @@ object Upgrades {
         Upgrade("power", Branch.ARCANA, costs = listOf(25, 40, 60, 85, 115)),
         Upgrade("relic_insight", Branch.ARCANA, costs = listOf(120), requires = "power", requiresLevel = 2),
         Upgrade("starting_relic", Branch.ARCANA, costs = listOf(150), requires = "relic_insight"),
+        // Spell schools unlock in order; Arithmetic is always open.
+        Upgrade("school_fractions", Branch.SCHOOLS, costs = listOf(40)),
+        Upgrade("school_algebra", Branch.SCHOOLS, costs = listOf(80), requires = "school_fractions"),
+        Upgrade("school_powers", Branch.SCHOOLS, costs = listOf(120), requires = "school_algebra"),
+        Upgrade("school_geometry", Branch.SCHOOLS, costs = listOf(160), requires = "school_powers"),
+        Upgrade("school_sequences", Branch.SCHOOLS, costs = listOf(200), requires = "school_geometry"),
     )
+
+    /** Upgrade that unlocks [school], or null for the starting school. */
+    fun unlockFor(school: School): String? = if (school == School.ARITHMETIC) null else "school_${school.name.lowercase()}"
 
     fun byId(id: String): Upgrade = requireNotNull(all.find { it.id == id }) { "Unknown upgrade $id" }
 
@@ -71,6 +80,10 @@ data class MetaProfile(val crystals: Int = 0, val levels: Map<String, Int> = emp
         if (!canBuy(id)) return null
         return copy(crystals = crystals - nextCost(id)!!, levels = levels + (id to level(id) + 1))
     }
+
+    fun isUnlocked(school: School): Boolean = Upgrades.unlockFor(school)?.let { level(it) > 0 } ?: true
+
+    val unlockedSchools: List<School> get() = School.entries.filter(::isUnlocked)
 
     fun bonuses(): RunBonuses = RunBonuses(
         maxHpBonus = level("vitality") * Upgrades.VITALITY_HP,

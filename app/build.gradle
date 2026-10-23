@@ -22,8 +22,8 @@ android {
         applicationId "com.arlindodishi.mathwizard"
         minSdk 24
         targetSdk 34
-        versionCode 5
-        versionName "2.0-alpha5"
+        versionCode 6
+        versionName "2.0-alpha6"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -55,6 +55,12 @@ android {
 
     testOptions {
         unitTests.includeAndroidResources = true
+    }
+
+    // Exported Room schemas, read by MigrationTestHelper in Robolectric unit tests (which see the
+    // debug variant's assets, not test assets). A few KB of JSON in debug builds only.
+    sourceSets {
+        debug.assets.srcDirs += files("$projectDir/schemas")
     }
 
     buildFeatures {
@@ -98,6 +104,7 @@ dependencies {
     implementation "androidx.room:room-runtime:$roomVersion"
     implementation "androidx.room:room-ktx:$roomVersion"
     ksp "androidx.room:room-compiler:$roomVersion"
+    testImplementation "androidx.room:room-testing:$roomVersion"
     
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.jetbrains.kotlinx:kotlinx-coroutines-test:1.10.2'
