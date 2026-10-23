@@ -34,6 +34,7 @@ import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -54,7 +55,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -285,7 +288,14 @@ private fun TopBar(floor: Int, boss: Boolean, hp: Int, maxHp: Int, timeLeft: Lon
             Spacer(Modifier.width(6.dp))
             Text(stringResource(R.string.run_hp, hp, maxHp), style = MaterialTheme.typography.titleLarge, color = SpireColors.PlayerHp)
         }
-        SegmentedBar(hp.toFloat() / maxHp, SpireColors.PlayerHp, Modifier.fillMaxWidth(), segments = 10, height = 10.dp)
+        SegmentedBar(
+            hp.toFloat() / maxHp,
+            SpireColors.PlayerHp,
+            Modifier.fillMaxWidth(),
+            segments = 10,
+            height = 10.dp,
+            description = "HP " + stringResource(R.string.run_hp, hp, maxHp),
+        )
         val timeFraction = (timeLeft.toFloat() / timeLimit.coerceAtLeast(1)).coerceIn(0f, 1f)
         SegmentedBar(
             timeFraction,
@@ -351,7 +361,14 @@ private fun EnemyPanel(ui: RunUiState, shakeX: Float, flash: Float, modifier: Mo
         }
         Text(name.uppercase(), style = MaterialTheme.typography.titleLarge.copy(shadow = PixelShadow), color = SpireColors.Text)
         Spacer(Modifier.height(6.dp))
-        SegmentedBar(enemy.hp.toFloat() / enemy.maxHp, SpireColors.EnemyHp, Modifier.fillMaxWidth(0.7f), segments = 10, height = 8.dp)
+        SegmentedBar(
+            enemy.hp.toFloat() / enemy.maxHp,
+            SpireColors.EnemyHp,
+            Modifier.fillMaxWidth(0.7f),
+            segments = 10,
+            height = 8.dp,
+            description = "$name HP " + stringResource(R.string.run_hp, enemy.hp, enemy.maxHp),
+        )
         Text(
             stringResource(R.string.run_hp, enemy.hp, enemy.maxHp),
             style = MaterialTheme.typography.labelMedium,
@@ -439,6 +456,8 @@ private fun ProblemCard(
                 text = if (missed) stringResource(R.string.run_answer_was, problem.answer) else "",
                 style = MaterialTheme.typography.labelLarge,
                 color = SpireColors.Success,
+                // Announced by TalkBack when it appears.
+                modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
             )
             Spacer(Modifier.height(Spacing.xs))
             problem.choices.chunked(2).forEach { row ->
@@ -490,7 +509,7 @@ private fun ChoiceButton(
             .height(64.dp)
             .semantics { contentDescription = description },
     ) {
-        Text(choice, style = MaterialTheme.typography.headlineMedium.copy(shadow = null), color = Color(0xFF1A0D10))
+        Text(choice, style = MaterialTheme.typography.headlineMedium.copy(shadow = null), color = LocalContentColor.current)
     }
 }
 

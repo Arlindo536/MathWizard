@@ -39,7 +39,7 @@ object Upgrades {
     fun byId(id: String): Upgrade = requireNotNull(all.find { it.id == id }) { "Unknown upgrade $id" }
 
     const val VITALITY_HP = 10
-    const val SECOND_WIND_HEAL = 5
+    const val SECOND_WIND_HEAL = 3
     const val FOCUS_TIME = 0.08
     const val POWER_DAMAGE = 0.05
 }

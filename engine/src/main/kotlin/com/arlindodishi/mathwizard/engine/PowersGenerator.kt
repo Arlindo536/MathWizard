@@ -9,7 +9,7 @@ import kotlin.random.Random
 /**
  * Earth school: powers and roots, written with superscripts (7², 2⁵) and √ / ∛.
  * Tiers: squares to 10² (0), squares to 12², square roots, small cubes (20), powers of 2, 3, 5,
- * and 10, squares and roots to 15 (45) then 20 (70), sums and differences of squares, √(a × b), cube roots,
+ * and 10, squares and roots to 17 (45) then 20 (70), sums and differences of squares, √(a × b), cube roots,
  * quotients of powers (70). Roots are always exact.
  */
 object PowersGenerator : ProblemGenerator {
@@ -31,7 +31,7 @@ object PowersGenerator : ProblemGenerator {
 
     override fun generate(difficulty: Int, random: Random): Problem {
         val d = difficulty.coerceIn(MIN_DIFFICULTY, MAX_DIFFICULTY)
-        return problem(d, draft(Kind.entries.filter { d >= it.unlockAt }.random(random), d, random), random)
+        return problem(d, draft(Kind.entries.filter { d >= it.unlockAt }.pickFavouringNewest(random), d, random), random)
     }
 
     /** Boss: always a combined expression. */
@@ -53,7 +53,7 @@ object PowersGenerator : ProblemGenerator {
         choices = buildIntChoices(draft.answer, draft.candidates + listOf(draft.answer + 1, draft.answer - 1), random),
     )
 
-    private fun squareBase(d: Int, random: Random) = random.nextInt(2, if (d < 20) 11 else if (d < 45) 13 else if (d < 70) 16 else 21)
+    private fun squareBase(d: Int, random: Random) = random.nextInt(2, if (d < 20) 11 else if (d < 45) 13 else if (d < 70) 18 else 21)
 
     private fun draft(kind: Kind, d: Int, random: Random): Draft = when (kind) {
         Kind.SQUARE -> {

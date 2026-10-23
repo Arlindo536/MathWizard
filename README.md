@@ -6,6 +6,8 @@ Between climbs you spend Mana crystals on permanent upgrades and unlock new spel
 
 **Download:** [arlindo.site](https://arlindo.site) (Android 7.0+, APK outside the Play Store).
 
+<p><img src="docs/demo.gif" width="300" alt="Gameplay: answering 11 − 5 casts a spell that hits the Ember Imp, a wrong answer hurts the wizard, then a relic is chosen"></p>
+
 <p>
   <img src="docs/screenshots/01_home.png" width="200" alt="Home screen with the wizard and the spire">
   <img src="docs/screenshots/03_spell.png" width="200" alt="A spell flying at a water enemy on a fractions problem">
@@ -27,7 +29,19 @@ Between climbs you spend Mana crystals on permanent upgrades and unlock new spel
 - **Speed and combos.** Answers in the first third of the timer deal ×1.5; streaks add up to ×1.5 more.
 - **12 relics** (pick 1 of 3 after each floor) and **7 permanent upgrades** bought with crystals.
 - **Adaptive difficulty:** rises with the floor and nudges up or down with your speed and accuracy.
-- Albanian and English, haptics, mutable sound effects and music.
+- **Daily Rift:** the same fixed-seed climb for every player each day, one attempt, day streaks.
+- **Practice:** any unlocked school at a chosen level, no HP and no timer.
+- Albanian and English (switchable in the app), haptics, sound effects and music.
+
+## Accessibility
+
+- Relaxed mode: 75% more time for every problem.
+- Theme text colours meet WCAG AA contrast (4.5:1) on every theme background (checked with a
+  script); button labels pick the higher-contrast of dark or light text.
+- Layouts grow with the system font size (screenshot-tested at 130% and 200%).
+- TalkBack: answer buttons, HP bars and relics have labels; the timer bar is hidden to avoid
+  constant announcements; the correct answer after a miss is announced.
+- Every answer can be read without colour: the correct answer is also shown as text.
 
 ## Tech
 
@@ -37,13 +51,15 @@ Between climbs you spend Mana crystals on permanent upgrades and unlock new spel
 - Room for runs, crystals and upgrades (schema migrations tested); offline, no ads, no accounts.
 - Pixel art is drawn in Compose from character grids (`ui/pixel/Sprites.kt`), no image assets.
 - Tests: engine unit tests (each school's answers checked by an independent evaluator),
-  ViewModel tests, Robolectric repository and migration tests, Roborazzi screenshot tests.
+  a balance simulation with bot players, ViewModel tests, Robolectric repository and
+  migration tests, Roborazzi screenshot tests (also used for the images and the GIF above).
 
 ```bash
 ./gradlew :engine:test testDebugUnitTest      # all tests (JDK 17 or 21)
 ./gradlew recordRoborazziDebug                # re-record docs/screenshots
 python3 tools/preview_sprites.py sheet.png    # render every sprite to one PNG (needs Pillow)
 python3 tools/gen_sounds.py                   # regenerate the sound effects and music
+python3 tools/make_demo_gif.py                # docs/demo.gif from the demoFrames test
 ```
 
 Design notes and decisions: [docs/DESIGN.md](docs/DESIGN.md).

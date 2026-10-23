@@ -44,7 +44,7 @@ object GeometryGenerator : ProblemGenerator {
 
     override fun generate(difficulty: Int, random: Random): Problem {
         val d = difficulty.coerceIn(MIN_DIFFICULTY, MAX_DIFFICULTY)
-        return problem(d, draft(Kind.entries.filter { d >= it.unlockAt }.random(random), d, random), random)
+        return problem(d, draft(Kind.entries.filter { d >= it.unlockAt }.pickFavouringNewest(random), d, random), random)
     }
 
     /** Boss: a cut-out area or a top-tier problem with bigger numbers. */
@@ -117,7 +117,8 @@ object GeometryGenerator : ProblemGenerator {
         Kind.QUAD_ANGLE -> {
             val a = 10 * random.nextInt(6, 13)
             val b = 10 * random.nextInt(6, 13)
-            val c = 10 * random.nextInt(6, 13)
+            // Keep the three given angles at most 330°, so the fourth is at least 30°.
+            val c = 10 * random.nextInt(6, ((330 - a - b) / 10 + 1).coerceIn(7, 13))
             Draft("quad_angle", listOf(a, b, c), 360 - a - b - c, listOf(540 - a - b - c, 180 - (a + b + c) % 180, 360 - a - b))
         }
         Kind.TRAPEZOID_AREA -> {

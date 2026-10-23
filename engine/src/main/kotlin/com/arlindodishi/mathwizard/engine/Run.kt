@@ -83,7 +83,8 @@ sealed interface AnswerOutcome {
 object Balance {
     const val PLAYER_MAX_HP = 100
     const val SPELL_DAMAGE = 25
-    const val FLOOR_HEAL = 15
+    const val FLOOR_HEAL = 5
+    const val ENEMY_DAMAGE_CAP = 90.0
     const val BOSS_EVERY = 5
     const val BOSS_HP_MULTIPLIER = 1.5
     const val BOSS_DAMAGE_MULTIPLIER = 1.25
@@ -100,7 +101,7 @@ object Balance {
     }
 
     fun enemyDamage(floor: Int, type: EnemyType): Int {
-        val damage = ((10 + floor) * type.damageFactor).coerceAtMost(35.0)
+        val damage = ((18 + floor * 3) * type.damageFactor).coerceAtMost(ENEMY_DAMAGE_CAP)
         return (if (type.boss) damage * BOSS_DAMAGE_MULTIPLIER else damage).roundToInt()
     }
 

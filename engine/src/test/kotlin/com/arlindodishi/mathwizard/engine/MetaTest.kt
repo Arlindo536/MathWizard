@@ -65,7 +65,7 @@ class MetaTest {
             levels = mapOf("vitality" to 3, "second_wind" to 2, "focus" to 2, "hint" to 1, "power" to 4, "relic_insight" to 1, "starting_relic" to 1),
         ).bonuses()
         assertEquals(30, b.maxHpBonus)
-        assertEquals(10, b.floorHealBonus)
+        assertEquals(2 * Upgrades.SECOND_WIND_HEAL, b.floorHealBonus)
         assertEquals(1.16, b.timeMultiplier, 1e-9)
         assertEquals(1.2, b.damageMultiplier, 1e-9)
         assertEquals(1, b.hints)

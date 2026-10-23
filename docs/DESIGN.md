@@ -178,3 +178,19 @@ Pure Kotlin module `:engine`, no Android dependencies, tested with `./gradlew :e
   Duel options. Language (System / Shqip / English) uses `AppCompatDelegate.setApplicationLocales`
   with `locales_config.xml` and the AppCompat locale service for Android 7-12.
 - The old XML Statistics and Settings activities are no longer reachable from the app.
+
+## 11. Polish and release (step 9)
+
+- Balance: `BalanceSimulation` plays 300 seeded runs per bot (beginner/average/strong accuracy
+  and speed). Before tuning a beginner reached floor 30 in 37 minutes. After: floor heal 15 -> 5,
+  enemy hit (18 + 3·floor) × factor capped at 90 (was (10 + floor) capped at 35), Healing
+  Draught +10 (was 15), Vampiric Rune +2 (was 3), Second Wind +3/level (was 5). Without
+  upgrades: beginner ~floor 7 (6 min), average ~20 (13 min), strong ~49 (24 min); all upgrades
+  roughly double that. `BalanceTest` keeps these targets.
+- Generators now favour the most recently unlocked problem kinds (weights 1, 2, 3, ...); this
+  exposed a geometry bug (three quadrilateral angles could sum to 360°), now fixed.
+- Accessibility: WCAG contrast checked for every colour pair (dark labels on the grey "other
+  answer" buttons failed at 1.7:1, now light), TalkBack labels and live region, layouts tested
+  at 130% / 200% font size (a Home label clipped at 200%, buttons now grow).
+- Release 2.0.0: signed with the owner's key (same certificate as v1.0), notes in
+  `docs/RELEASE_NOTES.md`.

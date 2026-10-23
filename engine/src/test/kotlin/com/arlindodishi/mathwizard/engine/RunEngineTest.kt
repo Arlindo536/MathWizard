@@ -181,7 +181,7 @@ class RunEngineTest {
     fun enemyDamageIsCappedAndGrowsWithFloor() {
         val type = Bestiary.all.maxBy { it.damageFactor }
         assertTrue(Balance.enemyDamage(1, type) < Balance.enemyDamage(20, type))
-        assertEquals(35, Balance.enemyDamage(1_000, type))
+        assertEquals((Balance.ENEMY_DAMAGE_CAP).toInt(), Balance.enemyDamage(1_000, type))
     }
 
     @Test

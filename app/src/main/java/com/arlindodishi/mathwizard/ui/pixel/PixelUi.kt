@@ -30,6 +30,9 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.lerp
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -59,6 +62,12 @@ fun PixelImage(sprite: PixelSprite, modifier: Modifier = Modifier, flash: Float 
     }
 }
 
+/** WCAG contrast ratio between two colours (1..21). */
+fun contrast(a: Color, b: Color): Float {
+    val (hi, lo) = if (a.luminance() > b.luminance()) a.luminance() to b.luminance() else b.luminance() to a.luminance()
+    return (hi + 0.05f) / (lo + 0.05f)
+}
+
 /** Darker/lighter shades for bevels, computed in plain RGB like a hand-picked palette would be. */
 fun Color.shade(amount: Float): Color = lerp(this, Color.Black, amount)
 fun Color.tint(amount: Float): Color = lerp(this, Color.White, amount)
@@ -79,6 +88,8 @@ fun PixelButton(
     val interaction = remember { MutableInteractionSource() }
     val pressed by interaction.collectIsPressedAsState()
     val face = if (enabled) color else color.shade(0.45f)
+    // Pick whichever label colour contrasts more with the face (matters for disabled and grey buttons).
+    val label = if (contrast(SpireColors.Text, face) > contrast(contentColor, face)) SpireColors.Text else contentColor
     val edge = 5.dp
     Box(
         modifier
@@ -95,7 +106,7 @@ fun PixelButton(
             .padding(start = 12.dp, end = 12.dp, top = if (pressed) 6.dp else 3.dp, bottom = if (pressed) 3.dp else 8.dp),
         contentAlignment = Alignment.Center,
     ) {
-        CompositionLocalProvider(LocalContentColor provides contentColor) { content() }
+        CompositionLocalProvider(LocalContentColor provides label) { content() }
     }
 }
 
@@ -110,12 +121,23 @@ fun Modifier.pixelPanel(accent: Color, fill: Color = SpireColors.Surface): Modif
     }
     .padding(9.dp)
 
-/** Bar of [segments] blocks; filled blocks round up so any HP left shows at least one. */
+/**
+ * Bar of [segments] blocks; filled blocks round up so any HP left shows at least one.
+ * [description] is what TalkBack reads; null hides the bar from accessibility (e.g. the timer).
+ */
 @Composable
-fun SegmentedBar(fraction: Float, color: Color, modifier: Modifier = Modifier, segments: Int = 10, height: Dp = 10.dp) {
+fun SegmentedBar(
+    fraction: Float,
+    color: Color,
+    modifier: Modifier = Modifier,
+    segments: Int = 10,
+    height: Dp = 10.dp,
+    description: String? = null,
+) {
     val filled = if (fraction <= 0f) 0 else kotlin.math.ceil(fraction.coerceAtMost(1f) * segments).toInt()
     Row(
         modifier
+            .clearAndSetSemantics { if (description != null) contentDescription = description }
             .height(height + 6.dp)
             .background(SpireColors.Ink)
             .padding(3.dp),

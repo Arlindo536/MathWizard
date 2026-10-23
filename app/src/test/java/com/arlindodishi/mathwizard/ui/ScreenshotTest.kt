@@ -1,6 +1,12 @@
 package com.arlindodishi.mathwizard.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onRoot
 import androidx.test.core.app.ApplicationProvider
@@ -57,9 +63,14 @@ class ScreenshotTest {
 
     private val feedback by lazy { ApplicationProvider.getApplicationContext<android.content.Context>().appContainer.feedback }
 
-    private fun capture(name: String, advanceMillis: Long = 300, content: @Composable () -> Unit) {
+    private fun capture(name: String, advanceMillis: Long = 300, fontScale: Float = 1f, content: @Composable () -> Unit) {
         compose.mainClock.autoAdvance = false
-        compose.setContent { MathWizardTheme { content() } }
+        compose.setContent {
+            val density = LocalDensity.current
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
+                MathWizardTheme { content() }
+            }
+        }
         compose.mainClock.advanceTimeBy(advanceMillis)
         compose.onRoot().captureRoboImage("../docs/screenshots/$name.png")
     }
@@ -146,6 +157,58 @@ class ScreenshotTest {
             bestBySchool = mapOf(School.ARITHMETIC to 17, School.FRACTIONS to 9, School.ALGEBRA to 4),
             onPick = {}, onLocked = {}, onBack = {},
         )
+    }
+
+    @Test
+    fun runWithLargeText() {
+        val engine = runOn(14, School.GEOMETRY, seed = 3L)
+        capture("a11y_run_text130", advanceMillis = 1600, fontScale = 1.3f) { RunScreen(ui(engine.state), feedback, {}, {}, {}) }
+    }
+
+    @Test
+    fun homeWithLargeText() {
+        capture("a11y_home_text200", fontScale = 2.0f) {
+            HomeScreen(
+                bestFloor = 17, runsPlayed = 23, crystals = 245, soundOn = true, musicOn = false, dailyDone = true, dailyStreak = 4,
+                onClimb = {}, onDaily = {}, onPractice = {}, onUpgrades = {}, onClassic = {}, onStats = {}, onSettings = {},
+                onToggleSound = {}, onToggleMusic = {},
+            )
+        }
+    }
+
+    /**
+     * Frames for the README demo GIF (build/demo/frame_NNN.png, assembled by
+     * tools/make_demo_gif.py): a hit with its spell, a miss, then clearing the floor.
+     */
+    @Test
+    fun demoFrames() {
+        val engine = runOn(2, seed = 8L)
+        var state by mutableStateOf(ui(engine.state))
+        compose.mainClock.autoAdvance = false
+        compose.setContent { MathWizardTheme { RunScreen(state, feedback, {}, {}, {}) } }
+        var frame = 0
+        fun shoot(times: Int, stepMillis: Long) = repeat(times) {
+            compose.mainClock.advanceTimeBy(stepMillis)
+            compose.onRoot().captureRoboImage("build/demo/frame_%03d.png".format(frame++))
+        }
+        fun answer(correct: Boolean) {
+            val p = engine.state.problem
+            val chosen = if (correct) p.answer else p.choices.first { it != p.answer }
+            val outcome = engine.answer(chosen, if (correct) 1_500 else 4_000)
+            state = state.copy(run = engine.state, feedback = Feedback(outcome, chosen), answerCount = state.answerCount + 1)
+        }
+        fun settle() {
+            state = state.copy(feedback = null, timeLeftMillis = engine.state.timeLimitMillis)
+        }
+        shoot(8, 150) // banner leaves, idle bob
+        answer(correct = true); shoot(10, 70); settle(); shoot(5, 150)
+        answer(correct = true); shoot(10, 70); settle(); shoot(4, 150)
+        answer(correct = false); shoot(8, 80); settle(); shoot(4, 150)
+        while (engine.state.phase == Phase.FIGHTING) {
+            answer(correct = true); shoot(10, 70)
+            if (engine.state.phase == Phase.FIGHTING) { settle(); shoot(3, 150) }
+        }
+        settle(); shoot(10, 150) // relic choice
     }
 
     @Test

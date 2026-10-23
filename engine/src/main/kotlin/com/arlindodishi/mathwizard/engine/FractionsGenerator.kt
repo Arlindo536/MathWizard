@@ -24,7 +24,7 @@ object FractionsGenerator : ProblemGenerator {
 
     override fun generate(difficulty: Int, random: Random): Problem {
         val d = difficulty.coerceIn(MIN_DIFFICULTY, MAX_DIFFICULTY)
-        val draft = when (Kind.entries.filter { d >= it.unlockAt }.random(random)) {
+        val draft = when (Kind.entries.filter { d >= it.unlockAt }.pickFavouringNewest(random)) {
             Kind.PART_OF -> partOf(d, random)
             Kind.SAME_DEN -> sameDenominator(d, random)
             Kind.EASY_PERCENT -> percent(listOf(10, 20, 25, 50), random)

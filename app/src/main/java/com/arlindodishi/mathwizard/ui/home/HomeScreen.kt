@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
@@ -143,9 +144,10 @@ fun HomeScreen(
                             onClick = action,
                             color = SpireColors.SurfaceRaised,
                             contentColor = SpireColors.Text,
-                            modifier = Modifier.weight(1f).height(52.dp),
+                            // Grows with large text instead of clipping the label.
+                            modifier = Modifier.weight(1f).heightIn(min = 52.dp),
                         ) {
-                            Text(stringResource(label).uppercase(), style = MaterialTheme.typography.titleMedium)
+                            Text(stringResource(label).uppercase(), style = MaterialTheme.typography.titleMedium, textAlign = TextAlign.Center)
                         }
                     }
                 }

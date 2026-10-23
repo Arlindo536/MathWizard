@@ -68,6 +68,19 @@ internal fun <T> buildChoices(
     return (wrong + answer).shuffled(random).map(format)
 }
 
+/**
+ * Picks one item of a list given in unlock order, favouring the most recently unlocked
+ * (weights 1, 2, 3, ...), so higher difficulty really shows more of the harder kinds.
+ */
+internal fun <T> List<T>.pickFavouringNewest(random: Random): T {
+    var r = random.nextInt(size * (size + 1) / 2)
+    forEachIndexed { i, item ->
+        r -= i + 1
+        if (r < 0) return item
+    }
+    return last()
+}
+
 internal fun buildIntChoices(
     answer: Int,
     candidates: List<Int>,

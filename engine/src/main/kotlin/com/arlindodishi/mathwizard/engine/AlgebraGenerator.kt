@@ -22,7 +22,7 @@ object AlgebraGenerator : ProblemGenerator {
 
     override fun generate(difficulty: Int, random: Random): Problem {
         val d = difficulty.coerceIn(MIN_DIFFICULTY, MAX_DIFFICULTY)
-        val form = Form.entries.filter { d >= it.unlockAt }.random(random)
+        val form = Form.entries.filter { d >= it.unlockAt }.pickFavouringNewest(random)
         return problem(d, draft(form, d, random), random)
     }
 

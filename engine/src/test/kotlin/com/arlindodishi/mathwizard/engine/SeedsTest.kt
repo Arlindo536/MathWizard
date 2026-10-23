@@ -33,3 +33,14 @@ class SeedsTest {
         assertEquals(first, second)
     }
 }
+
+class PickFavouringNewestTest {
+    @Test
+    fun laterItemsArePickedMoreOftenButAllAppear() {
+        val r = kotlin.random.Random(3)
+        val counts = IntArray(4)
+        repeat(10_000) { counts[listOf(0, 1, 2, 3).pickFavouringNewest(r)]++ }
+        // Expected shares 10%, 20%, 30%, 40%.
+        listOf(0.1, 0.2, 0.3, 0.4).forEachIndexed { i, share -> assertEquals(share, counts[i] / 10_000.0, 0.02) }
+    }
+}

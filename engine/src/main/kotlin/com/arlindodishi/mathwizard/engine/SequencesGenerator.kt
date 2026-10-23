@@ -23,7 +23,7 @@ object SequencesGenerator : ProblemGenerator {
 
     override fun generate(difficulty: Int, random: Random): Problem {
         val d = difficulty.coerceIn(MIN_DIFFICULTY, MAX_DIFFICULTY)
-        return problem(d, draft(Kind.entries.filter { d >= it.unlockAt }.random(random), random), random)
+        return problem(d, draft(Kind.entries.filter { d >= it.unlockAt }.pickFavouringNewest(random), random), random)
     }
 
     /** Boss: a missing middle term or a two-rule sequence. */

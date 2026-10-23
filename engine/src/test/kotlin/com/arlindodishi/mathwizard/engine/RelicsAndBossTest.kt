@@ -1,5 +1,6 @@
 package com.arlindodishi.mathwizard.engine
 
+import kotlin.math.roundToInt
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -136,7 +137,7 @@ class RelicsAndBossTest {
         val hurt = e.state.playerHp
         e.clearFloor()
         e.nextFloor()
-        assertEquals(hurt + Balance.FLOOR_HEAL + 15, e.state.playerHp)
+        assertEquals(hurt + Balance.FLOOR_HEAL + Relics.byId("healing_draught").floorHealBonus, e.state.playerHp)
     }
 
     @Test
@@ -144,7 +145,7 @@ class RelicsAndBossTest {
         val e = engineWith("iron_ward")
         val miss = assertIs<AnswerOutcome.Miss>(e.wrong())
         val raw = Balance.enemyDamage(e.state.floor, e.state.enemy.type)
-        assertEquals((raw * 0.75).let { kotlin.math.round(it).toInt() }, miss.damageTaken)
+        assertEquals((raw * 0.75).roundToInt(), miss.damageTaken)
     }
 
     @Test
@@ -186,8 +187,9 @@ class RelicsAndBossTest {
         e.wrong()
         val hurt = e.state.playerHp
         val hit = assertIs<AnswerOutcome.Hit>(e.correct())
-        assertEquals(3, hit.healed)
-        assertEquals(hurt + 3, e.state.playerHp)
+        val heal = Relics.byId("vampiric_rune").healPerHit
+        assertEquals(heal, hit.healed)
+        assertEquals(hurt + heal, e.state.playerHp)
     }
 
     @Test

@@ -22,7 +22,7 @@ object ArithmeticGenerator : ProblemGenerator {
 
     override fun generate(difficulty: Int, random: Random): Problem {
         val d = difficulty.coerceIn(MIN_DIFFICULTY, MAX_DIFFICULTY)
-        val (prompt, answer, candidates) = when (unlockedOps(d).random(random)) {
+        val (prompt, answer, candidates) = when (unlockedOps(d).pickFavouringNewest(random)) {
             Op.ADD -> addition(d, random)
             Op.SUB -> subtraction(d, random)
             Op.MUL -> multiplication(d, random)

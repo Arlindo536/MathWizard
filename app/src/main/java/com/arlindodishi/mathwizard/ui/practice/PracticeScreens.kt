@@ -17,6 +17,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,7 +31,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
@@ -181,6 +184,7 @@ fun PracticeScreen(
                     },
                     style = MaterialTheme.typography.titleLarge,
                     color = if (ui.wasCorrect) SpireColors.Success else SpireColors.Danger,
+                    modifier = Modifier.semantics { liveRegion = LiveRegionMode.Polite },
                 )
                 Spacer(Modifier.height(Spacing.s))
                 ui.problem.choices.chunked(2).forEach { row ->
@@ -198,7 +202,7 @@ fun PracticeScreen(
                                 color = color,
                                 modifier = Modifier.weight(1f).height(64.dp).semantics { contentDescription = description },
                             ) {
-                                Text(choice, style = MaterialTheme.typography.headlineMedium.copy(shadow = null), color = Color(0xFF1A0D10))
+                                Text(choice, style = MaterialTheme.typography.headlineMedium.copy(shadow = null), color = LocalContentColor.current)
                             }
                         }
                     }
