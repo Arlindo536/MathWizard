@@ -3,46 +3,50 @@ package com.arlindodishi.mathwizard.ui.run
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.LinearEasing
+import androidx.compose.animation.core.RepeatMode
+import androidx.compose.animation.core.animateFloat
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.infiniteRepeatable
+import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.hapticfeedback.HapticFeedbackType
@@ -50,46 +54,61 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalHapticFeedback
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LifecycleEventEffect
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
+import com.arlindodishi.mathwizard.GameFeedback
 import com.arlindodishi.mathwizard.R
+import com.arlindodishi.mathwizard.Sfx
 import com.arlindodishi.mathwizard.appContainer
 import com.arlindodishi.mathwizard.engine.AnswerOutcome
 import com.arlindodishi.mathwizard.engine.Balance
 import com.arlindodishi.mathwizard.engine.Phase
 import com.arlindodishi.mathwizard.engine.Problem
 import com.arlindodishi.mathwizard.engine.School
+import com.arlindodishi.mathwizard.ui.pixel.PixelButton
+import com.arlindodishi.mathwizard.ui.pixel.PixelImage
+import com.arlindodishi.mathwizard.ui.pixel.SegmentedBar
+import com.arlindodishi.mathwizard.ui.pixel.SpellEffect
+import com.arlindodishi.mathwizard.ui.pixel.SpellKind
+import com.arlindodishi.mathwizard.ui.pixel.SpireBackdrop
+import com.arlindodishi.mathwizard.ui.pixel.Sprites
+import com.arlindodishi.mathwizard.ui.pixel.pixelPanel
 import com.arlindodishi.mathwizard.ui.schools.problemText
+import com.arlindodishi.mathwizard.ui.theme.PixelShadow
 import com.arlindodishi.mathwizard.ui.theme.SpireColors
 import com.arlindodishi.mathwizard.ui.theme.Spacing
 import com.arlindodishi.mathwizard.ui.theme.accent
+import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
 
 @Composable
 fun RunRoute(school: School, onExit: () -> Unit) {
     val context = LocalContext.current.applicationContext
+    val feedback = context.appContainer.feedback
     val viewModel: RunViewModel = viewModel(
         factory = viewModelFactory { initializer { RunViewModel(context.appContainer.meta, school) } },
     )
     val loaded by viewModel.ui.collectAsStateWithLifecycle()
-    val ui = loaded ?: run {
-        Box(Modifier.fillMaxSize().background(SpireColors.Night))
-        return
-    }
     var confirmLeave by rememberSaveable { mutableStateOf(false) }
 
     LifecycleEventEffect(Lifecycle.Event.ON_PAUSE) { viewModel.pause() }
     LifecycleEventEffect(Lifecycle.Event.ON_RESUME) { viewModel.resume() }
+
+    val ui = loaded ?: run {
+        Box(Modifier.fillMaxSize().background(SpireColors.Night))
+        return
+    }
 
     val gameOver = ui.run.phase == Phase.GAME_OVER && ui.feedback == null
     BackHandler(enabled = !gameOver) {
@@ -98,25 +117,31 @@ fun RunRoute(school: School, onExit: () -> Unit) {
     }
 
     if (gameOver) {
+        LaunchedEffect(Unit) { feedback.play(Sfx.GAME_OVER) }
         SummaryScreen(ui = ui, onAgain = viewModel::restart, onHome = onExit)
     } else {
         RunScreen(
             ui = ui,
+            feedback = feedback,
             onChoose = viewModel::choose,
             onHint = viewModel::useHint,
-            onContinue = viewModel::continueToNextFloor,
+            onContinue = { relicId ->
+                feedback.play(if (relicId != null) Sfx.RELIC else Sfx.CLICK)
+                viewModel.continueToNextFloor(relicId)
+            },
         )
     }
 
     if (confirmLeave) {
         AlertDialog(
             onDismissRequest = { confirmLeave = false; viewModel.resume() },
+            containerColor = SpireColors.Surface,
             title = { Text(stringResource(R.string.run_leave_title)) },
             text = { Text(stringResource(R.string.run_leave_body)) },
-            confirmButton = { TextButton(onClick = onExit) { Text(stringResource(R.string.run_leave_confirm)) } },
+            confirmButton = { TextButton(onClick = onExit) { Text(stringResource(R.string.run_leave_confirm), color = SpireColors.Danger) } },
             dismissButton = {
                 TextButton(onClick = { confirmLeave = false; viewModel.resume() }) {
-                    Text(stringResource(R.string.run_leave_cancel))
+                    Text(stringResource(R.string.run_leave_cancel), color = SpireColors.Text)
                 }
             },
         )
@@ -124,38 +149,68 @@ fun RunRoute(school: School, onExit: () -> Unit) {
 }
 
 @Composable
-fun RunScreen(ui: RunUiState, onChoose: (String) -> Unit, onHint: () -> Unit, onContinue: (String?) -> Unit) {
+fun RunScreen(
+    ui: RunUiState,
+    feedback: GameFeedback,
+    onChoose: (String) -> Unit,
+    onHint: () -> Unit,
+    onContinue: (String?) -> Unit,
+) {
     val run = ui.run
-    val feedback = ui.feedback
+    val answer = ui.feedback
     val accent = run.problem.school.accent()
     val haptics = LocalHapticFeedback.current
 
-    // Enemy shakes when hit, the whole screen nudges and flashes red when the player is hit.
+    // Hit: a bolt flies to the enemy, which flashes and shakes. Miss: the screen shakes red.
     val enemyShake = remember { Animatable(0f) }
+    val enemyFlash = remember { Animatable(0f) }
     val screenShake = remember { Animatable(0f) }
     val hurtFlash = remember { Animatable(0f) }
+    val spell = when (val outcome = answer?.outcome) {
+        is AnswerOutcome.Hit -> if (outcome.fast) SpellKind.CRITICAL else SpellKind.HIT
+        is AnswerOutcome.Miss -> if (outcome.shielded) null else SpellKind.HURT
+        null -> null
+    }
     LaunchedEffect(ui.answerCount) {
-        when (feedback?.outcome) {
+        when (val outcome = answer?.outcome) {
             is AnswerOutcome.Hit -> {
-                haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                feedback.play(if (outcome.fast) Sfx.CRITICAL else Sfx.HIT)
+                if (feedback.hapticsOn) haptics.performHapticFeedback(HapticFeedbackType.TextHandleMove)
+                delay(BOLT_MILLIS)
+                enemyFlash.snapTo(1f)
                 shake(enemyShake, 14f)
+                enemyFlash.animateTo(0f, tween(160))
+                if (outcome.enemyDefeated) feedback.play(Sfx.FLOOR)
             }
             is AnswerOutcome.Miss -> {
-                haptics.performHapticFeedback(HapticFeedbackType.LongPress)
+                feedback.play(if (outcome.shielded) Sfx.SHIELD else Sfx.MISS)
+                if (outcome.shielded) return@LaunchedEffect
+                if (feedback.hapticsOn) haptics.performHapticFeedback(HapticFeedbackType.LongPress)
                 hurtFlash.snapTo(0.35f)
-                shake(screenShake, 10f)
+                shake(screenShake, 12f)
                 hurtFlash.animateTo(0f, tween(400))
             }
             null -> Unit
         }
     }
 
+    // Floor change: the pillars scroll (climbing) and a banner announces the new floor.
+    val climb by animateFloatAsState(run.floor.toFloat(), tween(900), label = "climb")
+    var bannerFloor by remember { mutableIntStateOf(0) }
+    LaunchedEffect(run.floor) {
+        if (run.isBossFloor) feedback.play(Sfx.BOSS)
+        bannerFloor = run.floor
+        delay(1300)
+        bannerFloor = 0
+    }
+
     Box(
         Modifier
             .fillMaxSize()
-            .background(Brush.verticalGradient(listOf(SpireColors.Night, SpireColors.NightRaised)))
+            .background(SpireColors.Night)
             .offset { IntOffset(screenShake.value.roundToInt(), 0) },
     ) {
+        SpireBackdrop(climb = climb, torch = accent, modifier = Modifier.fillMaxSize())
         Column(
             Modifier
                 .fillMaxSize()
@@ -164,18 +219,23 @@ fun RunScreen(ui: RunUiState, onChoose: (String) -> Unit, onHint: () -> Unit, on
         ) {
             TopBar(run.floor, run.isBossFloor, run.playerHp, run.playerMaxHp, ui.timeLeftMillis, run.timeLimitMillis)
             RelicRow(run.relics.map { it.id })
-            Spacer(Modifier.height(Spacing.s))
-            EnemyPanel(ui, accent, enemyShake.value, Modifier.weight(1f).fillMaxWidth())
-            Spacer(Modifier.height(Spacing.m))
+            EnemyPanel(ui, enemyShake.value, enemyFlash.value, Modifier.weight(1f).fillMaxWidth())
             ProblemCard(
-                problem = feedback?.outcome?.problem ?: run.problem,
-                feedback = feedback,
+                problem = answer?.outcome?.problem ?: run.problem,
+                feedback = answer,
                 accent = accent,
-                hintsLeft = if (feedback == null && run.problem.choices.size > 2) run.hintsLeft else 0,
+                hintsLeft = if (answer == null && run.problem.choices.size > 2) run.hintsLeft else 0,
                 onChoose = onChoose,
                 onHint = onHint,
             )
         }
+
+        SpellEffect(
+            trigger = ui.answerCount,
+            kind = spell,
+            color = if (spell == SpellKind.HURT) SpireColors.Danger else accent,
+            modifier = Modifier.fillMaxSize(),
+        )
 
         Box(
             Modifier
@@ -184,8 +244,10 @@ fun RunScreen(ui: RunUiState, onChoose: (String) -> Unit, onHint: () -> Unit, on
                 .background(SpireColors.Danger),
         )
 
+        FloorBanner(visible = bannerFloor != 0 && run.phase == Phase.FIGHTING, floor = run.floor, boss = run.isBossFloor)
+
         AnimatedVisibility(
-            visible = run.phase == Phase.FLOOR_CLEARED && feedback == null,
+            visible = run.phase == Phase.FLOOR_CLEARED && answer == null,
             enter = fadeIn(),
             exit = fadeOut(),
         ) {
@@ -199,131 +261,107 @@ fun RunScreen(ui: RunUiState, onChoose: (String) -> Unit, onHint: () -> Unit, on
     }
 }
 
+/** Time for the spell bolt to travel from the card to the enemy. */
+private const val BOLT_MILLIS = 280L
+
 private suspend fun shake(anim: Animatable<Float, *>, amplitude: Float) {
     for (x in listOf(amplitude, -amplitude, amplitude * 0.6f, -amplitude * 0.6f, 0f)) {
-        anim.animateTo(x, tween(45))
+        anim.animateTo(x, tween(40))
     }
 }
 
 @Composable
 private fun TopBar(floor: Int, boss: Boolean, hp: Int, maxHp: Int, timeLeft: Long, timeLimit: Long) {
-    Column {
+    Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                stringResource(if (boss) R.string.run_floor_boss else R.string.run_floor, floor),
+                stringResource(if (boss) R.string.run_floor_boss else R.string.run_floor, floor).uppercase(),
                 style = MaterialTheme.typography.headlineMedium,
                 color = if (boss) SpireColors.Gold else SpireColors.Text,
                 modifier = Modifier.weight(1f),
             )
-            Text(
-                stringResource(R.string.run_hp, hp, maxHp),
-                style = MaterialTheme.typography.titleMedium,
-                color = SpireColors.PlayerHp,
-            )
+            PixelImage(Sprites.heart, Modifier.size(20.dp))
+            Spacer(Modifier.width(6.dp))
+            Text(stringResource(R.string.run_hp, hp, maxHp), style = MaterialTheme.typography.titleLarge, color = SpireColors.PlayerHp)
         }
-        Spacer(Modifier.height(Spacing.s))
-        Meter(fraction = hp.toFloat() / maxHp, color = SpireColors.PlayerHp, height = 10.dp)
-        Spacer(Modifier.height(Spacing.s))
+        SegmentedBar(hp.toFloat() / maxHp, SpireColors.PlayerHp, Modifier.fillMaxWidth(), segments = 10, height = 10.dp)
         val timeFraction = (timeLeft.toFloat() / timeLimit.coerceAtLeast(1)).coerceIn(0f, 1f)
-        Meter(
-            fraction = timeFraction,
-            color = if (timeFraction < 0.3f) SpireColors.Danger else SpireColors.Gold,
-            height = 6.dp,
-            animate = false,
+        SegmentedBar(
+            timeFraction,
+            if (timeFraction < 0.3f) SpireColors.Danger else SpireColors.Gold,
+            Modifier.fillMaxWidth(),
+            segments = 20,
+            height = 5.dp,
         )
     }
 }
 
-/** Held relics as a row of small icons under the top bar. */
+/** Held relics as small framed icons under the top bar, wrapping onto a second row. */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun RelicRow(relicIds: List<String>) {
     if (relicIds.isEmpty()) return
-    Row(
-        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(6.dp),
+        verticalArrangement = Arrangement.spacedBy(6.dp),
         modifier = Modifier.padding(top = Spacing.s),
     ) {
         relicIds.forEach { id ->
-            val relic = relicUi(id)
-            val name = stringResource(relic.name)
+            val name = stringResource(relicUi(id).name)
             Box(
                 Modifier
                     .size(30.dp)
-                    .clip(CircleShape)
-                    .background(SpireColors.Surface)
-                    .border(1.dp, SpireColors.Outline, CircleShape)
+                    .background(SpireColors.Ink)
+                    .padding(2.dp)
+                    .background(SpireColors.SurfaceRaised)
+                    .padding(3.dp)
                     .semantics { contentDescription = name },
-                contentAlignment = Alignment.Center,
             ) {
-                Text(relic.emoji, style = MaterialTheme.typography.bodyMedium)
+                PixelImage(Sprites.relic(id), Modifier.fillMaxSize())
             }
         }
     }
 }
 
 @Composable
-private fun Meter(fraction: Float, color: Color, height: Dp, animate: Boolean = true) {
-    val shown by animateFloatAsState(fraction.coerceIn(0f, 1f), tween(if (animate) 350 else 0), label = "meter")
-    Box(
-        Modifier
-            .fillMaxWidth()
-            .height(height)
-            .clip(RoundedCornerShape(50))
-            .background(SpireColors.Outline),
-    ) {
-        Box(
-            Modifier
-                .fillMaxWidth(shown)
-                .height(height)
-                .clip(RoundedCornerShape(50))
-                .background(color),
-        )
-    }
-}
-
-@Composable
-private fun EnemyPanel(ui: RunUiState, accent: Color, shakeX: Float, modifier: Modifier) {
+private fun EnemyPanel(ui: RunUiState, shakeX: Float, flash: Float, modifier: Modifier) {
     val enemy = ui.run.enemy
+    val boss = enemy.type.boss
+    // Idle: a two-step bob, like a sprite's two-frame animation.
+    val idle = rememberInfiniteTransition(label = "idle")
+    val bob by idle.animateFloat(0f, 1f, infiniteRepeatable(tween(900, easing = LinearEasing), RepeatMode.Restart), label = "bob")
+    val defeatedAlpha by animateFloatAsState(if (enemy.defeated) 0f else 1f, tween(500), label = "defeat")
+    val name = stringResource(enemyNameRes(enemy.type.id))
     Column(modifier, horizontalAlignment = Alignment.CenterHorizontally, verticalArrangement = Arrangement.Center) {
         Box(contentAlignment = Alignment.Center) {
-            EnemyArt(
-                enemyId = enemy.type.id,
-                accent = if (enemy.type.boss) SpireColors.Gold else accent,
-                defeated = enemy.defeated,
+            PixelImage(
+                sprite = Sprites.enemy(enemy.type.id),
+                flash = flash,
+                alpha = defeatedAlpha,
                 modifier = Modifier
-                    .size(if (enemy.type.boss) 220.dp else 180.dp)
-                    .offset { IntOffset(shakeX.roundToInt(), 0) },
+                    .size(if (boss) 232.dp else 176.dp)
+                    .offset { IntOffset(shakeX.roundToInt(), if (bob < 0.5f) 0 else -4.dp.roundToPx()) }
+                    .semantics { contentDescription = name },
             )
             DamagePopup(ui)
         }
-        Spacer(Modifier.height(Spacing.m))
-        if (enemy.type.boss) {
-            Text(
-                stringResource(R.string.run_boss).uppercase(),
-                style = MaterialTheme.typography.labelLarge,
-                color = SpireColors.Gold,
-            )
+        if (boss) {
+            Text(stringResource(R.string.run_boss).uppercase(), style = MaterialTheme.typography.labelLarge, color = SpireColors.Gold)
         }
-        Text(
-            stringResource(enemyNameRes(enemy.type.id)),
-            style = MaterialTheme.typography.titleLarge,
-            color = SpireColors.Text,
-        )
-        Spacer(Modifier.height(Spacing.s))
-        Box(Modifier.fillMaxWidth(0.7f)) {
-            Meter(fraction = enemy.hp.toFloat() / enemy.maxHp, color = SpireColors.EnemyHp, height = 8.dp)
-        }
-        Spacer(Modifier.height(Spacing.s))
+        Text(name.uppercase(), style = MaterialTheme.typography.titleLarge.copy(shadow = PixelShadow), color = SpireColors.Text)
+        Spacer(Modifier.height(6.dp))
+        SegmentedBar(enemy.hp.toFloat() / enemy.maxHp, SpireColors.EnemyHp, Modifier.fillMaxWidth(0.7f), segments = 10, height = 8.dp)
         Text(
             stringResource(R.string.run_hp, enemy.hp, enemy.maxHp),
             style = MaterialTheme.typography.labelMedium,
             color = SpireColors.TextMuted,
+            modifier = Modifier.padding(top = 4.dp),
         )
         val streakCombo = Balance.comboMultiplier(ui.run.streak, ui.comboShift)
         Text(
-            text = if (streakCombo > 1.0) stringResource(R.string.run_combo, streakCombo.toString()) else "",
+            text = if (streakCombo > 1.0) stringResource(R.string.run_combo, streakCombo.toString()).uppercase() else "",
             style = MaterialTheme.typography.labelLarge,
             color = SpireColors.Gold,
-            modifier = Modifier.padding(top = Spacing.xs),
         )
     }
 }
@@ -333,7 +371,11 @@ private fun EnemyPanel(ui: RunUiState, accent: Color, shakeX: Float, modifier: M
 private fun BoxScope.DamagePopup(ui: RunUiState) {
     val outcome = ui.feedback?.outcome ?: return
     val rise = remember(ui.answerCount) { Animatable(0f) }
-    LaunchedEffect(ui.answerCount) { rise.animateTo(1f, tween(RunViewModel.FEEDBACK_MILLIS.toInt())) }
+    val hit = outcome is AnswerOutcome.Hit
+    LaunchedEffect(ui.answerCount) {
+        if (hit) delay(BOLT_MILLIS)
+        rise.animateTo(1f, tween((RunViewModel.FEEDBACK_MILLIS - BOLT_MILLIS).toInt()))
+    }
     val (text, color) = when (outcome) {
         is AnswerOutcome.Hit -> "-${outcome.damage}" to if (outcome.fast) SpireColors.Gold else SpireColors.Text
         is AnswerOutcome.Miss -> if (outcome.shielded) "0" to SpireColors.PlayerHp else "-${outcome.damageTaken} HP" to SpireColors.Danger
@@ -341,8 +383,8 @@ private fun BoxScope.DamagePopup(ui: RunUiState) {
     Column(
         Modifier
             .align(Alignment.TopCenter)
-            .offset { IntOffset(0, (-60 * rise.value).roundToInt()) }
-            .graphicsLayer { alpha = 1f - rise.value * 0.7f },
+            .offset { IntOffset(0, (-24.dp.toPx() - 40.dp.toPx() * rise.value).roundToInt()) }
+            .graphicsLayer { alpha = if (hit && rise.value == 0f) 0f else 1f - rise.value * 0.6f },
         horizontalAlignment = Alignment.CenterHorizontally,
     ) {
         Text(text, style = MaterialTheme.typography.displayMedium, color = color)
@@ -356,7 +398,7 @@ private fun BoxScope.DamagePopup(ui: RunUiState) {
             if (outcome is AnswerOutcome.Miss && outcome.revived) add(stringResource(R.string.run_revived) to SpireColors.Gold)
         }
         labels.forEach { (label, labelColor) ->
-            Text(label, style = MaterialTheme.typography.labelLarge, color = labelColor)
+            Text(label.uppercase(), style = MaterialTheme.typography.labelLarge.copy(shadow = PixelShadow), color = labelColor)
         }
     }
 }
@@ -370,55 +412,55 @@ private fun ProblemCard(
     onChoose: (String) -> Unit,
     onHint: () -> Unit,
 ) {
-    Box(Modifier.fillMaxWidth()) {
-        ProblemCardContent(problem, feedback, accent, onChoose)
-        if (hintsLeft > 0) {
-            val description = pluralStringResource(R.plurals.run_hint_cd, hintsLeft, hintsLeft)
-            TextButton(
-                onClick = onHint,
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(Spacing.xs)
-                    .semantics { contentDescription = description },
-            ) {
-                Text("\uD83D\uDCA1 $hintsLeft", style = MaterialTheme.typography.titleMedium, color = SpireColors.Gold)
+    Box(Modifier.fillMaxWidth().padding(top = Spacing.s)) {
+        Column(
+            Modifier
+                .fillMaxWidth()
+                .pixelPanel(accent)
+                .padding(horizontal = Spacing.s, vertical = Spacing.s),
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            val text = problemText(problem)
+            Text(
+                text,
+                // Word problems and long sequences get a smaller size so they fit on one or two lines.
+                style = when {
+                    text.length > 26 -> MaterialTheme.typography.headlineMedium.copy(fontSize = 27.sp, lineHeight = 30.sp)
+                    text.length > 14 -> MaterialTheme.typography.headlineMedium
+                    else -> MaterialTheme.typography.displayMedium
+                },
+                color = SpireColors.Text,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(top = Spacing.m, bottom = Spacing.xs, start = Spacing.l, end = Spacing.l),
+            )
+            val missed = feedback?.outcome is AnswerOutcome.Miss
+            Text(
+                text = if (missed) stringResource(R.string.run_answer_was, problem.answer) else "",
+                style = MaterialTheme.typography.labelLarge,
+                color = SpireColors.Success,
+            )
+            Spacer(Modifier.height(Spacing.xs))
+            problem.choices.chunked(2).forEach { row ->
+                Row(horizontalArrangement = Arrangement.spacedBy(10.dp), modifier = Modifier.padding(vertical = 5.dp)) {
+                    row.forEach { choice -> ChoiceButton(choice, problem, feedback, accent, onChoose, Modifier.weight(1f)) }
+                }
             }
         }
-    }
-}
-
-@Composable
-private fun ProblemCardContent(problem: Problem, feedback: Feedback?, accent: Color, onChoose: (String) -> Unit) {
-    Column(
-        Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(20.dp))
-            .background(SpireColors.Surface)
-            .border(1.dp, accent.copy(alpha = 0.5f), RoundedCornerShape(20.dp))
-            .padding(Spacing.m),
-        horizontalAlignment = Alignment.CenterHorizontally,
-    ) {
-        val text = problemText(problem)
-        Text(
-            text,
-            // Word problems and long sequences get a smaller size so they fit on one or two lines.
-            style = if (text.length > 14) MaterialTheme.typography.headlineMedium else MaterialTheme.typography.displayMedium,
-            color = SpireColors.Text,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(vertical = Spacing.m),
-        )
-        val missed = feedback?.outcome is AnswerOutcome.Miss
-        Text(
-            text = if (missed) stringResource(R.string.run_answer_was, problem.answer) else "",
-            style = MaterialTheme.typography.labelLarge,
-            color = SpireColors.Success,
-        )
-        Spacer(Modifier.height(Spacing.s))
-        problem.choices.chunked(2).forEach { row ->
-            Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s), modifier = Modifier.padding(vertical = Spacing.xs)) {
-                row.forEach { choice ->
-                    ChoiceButton(choice, problem, feedback, accent, onChoose, Modifier.weight(1f))
-                }
+        if (hintsLeft > 0) {
+            val description = pluralStringResource(R.plurals.run_hint_cd, hintsLeft, hintsLeft)
+            Row(
+                Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(12.dp)
+                    .heightIn(min = 44.dp)
+                    .clickable(role = Role.Button, onClick = onHint)
+                    .padding(horizontal = 8.dp)
+                    .semantics { contentDescription = description },
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+            ) {
+                PixelImage(Sprites.hint, Modifier.size(20.dp))
+                Text("$hintsLeft", style = MaterialTheme.typography.titleLarge, color = SpireColors.Gold)
             }
         }
     }
@@ -433,28 +475,50 @@ private fun ChoiceButton(
     onChoose: (String) -> Unit,
     modifier: Modifier,
 ) {
-    val container = when {
+    val color = when {
         feedback == null -> accent
         choice == problem.answer -> SpireColors.Success
         choice == feedback.chosen -> SpireColors.Danger
-        else -> SpireColors.Outline
+        else -> SpireColors.Track
     }
     val description = stringResource(R.string.run_answer_cd, choice)
-    Button(
+    PixelButton(
         onClick = { onChoose(choice) },
-        enabled = feedback == null,
-        colors = ButtonDefaults.buttonColors(
-            containerColor = container,
-            contentColor = SpireColors.Night,
-            disabledContainerColor = container,
-            disabledContentColor = SpireColors.Night,
-        ),
-        shape = RoundedCornerShape(14.dp),
+        color = color,
         modifier = modifier
             .height(64.dp)
             .semantics { contentDescription = description },
     ) {
-        Text(choice, style = MaterialTheme.typography.headlineMedium)
+        Text(choice, style = MaterialTheme.typography.headlineMedium.copy(shadow = null), color = Color(0xFF1A0D10))
+    }
+}
+
+/** Slides in "FLOOR 8" (or the boss warning) when a new floor starts. */
+@Composable
+private fun FloorBanner(visible: Boolean, floor: Int, boss: Boolean) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = slideInVertically { -it } + fadeIn(),
+        exit = slideOutVertically { -it } + fadeOut(),
+        modifier = Modifier.fillMaxWidth().padding(top = 140.dp),
+    ) {
+        Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
+            Column(
+                Modifier
+                    .pixelPanel(if (boss) SpireColors.Danger else SpireColors.Gold, fill = SpireColors.Night)
+                    .padding(horizontal = Spacing.l),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Text(
+                    stringResource(R.string.run_floor, floor).uppercase(),
+                    style = MaterialTheme.typography.displayMedium,
+                    color = if (boss) SpireColors.Danger else SpireColors.Gold,
+                )
+                if (boss) {
+                    Text(stringResource(R.string.run_boss).uppercase(), style = MaterialTheme.typography.titleLarge, color = SpireColors.Text)
+                }
+            }
+        }
     }
 }
 
@@ -463,13 +527,13 @@ private fun RelicChoiceOverlay(bossCleared: Boolean, floor: Int, offer: List<Str
     Box(
         Modifier
             .fillMaxSize()
-            .background(SpireColors.Night.copy(alpha = 0.92f))
+            .background(SpireColors.Night.copy(alpha = 0.93f))
             .safeDrawingPadding(),
         contentAlignment = Alignment.Center,
     ) {
         Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.padding(Spacing.l)) {
             Text(
-                if (bossCleared) stringResource(R.string.boss_cleared_title) else stringResource(R.string.floor_cleared_title, floor),
+                (if (bossCleared) stringResource(R.string.boss_cleared_title) else stringResource(R.string.floor_cleared_title, floor)).uppercase(),
                 style = MaterialTheme.typography.headlineMedium,
                 color = SpireColors.Gold,
                 textAlign = TextAlign.Center,
@@ -486,8 +550,8 @@ private fun RelicChoiceOverlay(bossCleared: Boolean, floor: Int, offer: List<Str
                 Spacer(Modifier.height(Spacing.s))
             }
             if (offer.isEmpty()) {
-                Button(onClick = { onPick(null) }, shape = RoundedCornerShape(14.dp), modifier = Modifier.height(56.dp)) {
-                    Text(stringResource(R.string.floor_continue), style = MaterialTheme.typography.titleLarge)
+                PixelButton(onClick = { onPick(null) }, color = SpireColors.Gold, modifier = Modifier.height(56.dp)) {
+                    Text(stringResource(R.string.floor_continue).uppercase(), style = MaterialTheme.typography.titleLarge)
                 }
             }
         }
@@ -500,67 +564,18 @@ private fun RelicCard(id: String, onClick: () -> Unit) {
     Row(
         Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(16.dp))
-            .background(SpireColors.Surface)
-            .border(1.dp, SpireColors.Gold.copy(alpha = 0.4f), RoundedCornerShape(16.dp))
-            .clickable(onClick = onClick)
-            .padding(Spacing.m),
+            .clickable(role = Role.Button, onClick = onClick)
+            .pixelPanel(SpireColors.Gold)
+            .padding(Spacing.s),
         verticalAlignment = Alignment.CenterVertically,
     ) {
-        Text(relic.emoji, style = MaterialTheme.typography.displayMedium)
+        PixelImage(Sprites.relic(id), Modifier.size(44.dp))
         Spacer(Modifier.width(Spacing.m))
         Column {
             Text(stringResource(relic.name), style = MaterialTheme.typography.titleLarge, color = SpireColors.Text)
             Text(stringResource(relic.description), style = MaterialTheme.typography.bodyMedium, color = SpireColors.TextMuted)
         }
     }
-}
-
-/** Placeholder enemy art: an emoji in a glowing orb, replaced in the visual pass (step 7). */
-@Composable
-fun EnemyArt(enemyId: String, accent: Color, defeated: Boolean, modifier: Modifier = Modifier) {
-    val alpha by animateFloatAsState(if (defeated) 0.15f else 1f, tween(400), label = "enemyAlpha")
-    Box(
-        modifier
-            .graphicsLayer { this.alpha = alpha }
-            .clip(CircleShape)
-            .background(Brush.radialGradient(listOf(accent.copy(alpha = 0.55f), accent.copy(alpha = 0.08f), Color.Transparent))),
-        contentAlignment = Alignment.Center,
-    ) {
-        Text(enemyEmoji(enemyId), style = MaterialTheme.typography.displayLarge.copy(fontSize = MaterialTheme.typography.displayLarge.fontSize * 2))
-    }
-}
-
-private fun enemyEmoji(id: String): String = when (id) {
-    "ember_imp" -> "👺"     // 👺
-    "cinder_slime" -> "🦠"  // 🦠
-    "ash_goblin" -> "👹"    // 👹
-    "flame_wisp" -> "🔥"    // 🔥
-    "magma_golem" -> "🪨"   // 🪨
-    "blaze_hound" -> "🐺"   // 🐺
-    "inferno_drake" -> "🐉" // 🐉
-    "tide_sprite" -> "🧚"
-    "frost_eel" -> "🐟"
-    "mist_crab" -> "🦀"
-    "abyssal_leviathan" -> "🐋"
-    "spark_bat" -> "🦇"
-    "storm_beetle" -> "🪲"
-    "volt_serpent" -> "🐍"
-    "thunder_titan" -> "🌩️"
-    "burrow_mole" -> "🦔"
-    "stone_tortoise" -> "🐢"
-    "thorn_beast" -> "🦏"
-    "mountain_giant" -> "🗿"
-    "prism_moth" -> "🦋"
-    "halo_wisp" -> "✨"
-    "mirror_knight" -> "🤺"
-    "solar_sphinx" -> "🦁"
-    "shade_cat" -> "🐈"
-    "echo_wraith" -> "👻"
-    "void_spider" -> "🕷️"
-    "night_lich" -> "💀"
-    "wizard" -> "🧙"        // 🧙
-    else -> "👾"            // 👾
 }
 
 fun enemyNameRes(id: String): Int = when (id) {

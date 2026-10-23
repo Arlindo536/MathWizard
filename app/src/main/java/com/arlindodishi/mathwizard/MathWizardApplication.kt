@@ -28,6 +28,8 @@ class AppContainer(context: Context) {
     private val roomMeta = RoomMetaRepository(database.metaDao())
     val meta: MetaRepository = roomMeta
 
+    val feedback: GameFeedback by lazy { GameFeedback(appContext) }
+
     init {
         scope.launch { importLegacyRecords() }
     }

@@ -13,4 +13,14 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         setContent { MathWizardApp() }
     }
+
+    override fun onStart() {
+        super.onStart()
+        appContainer.feedback.onForeground()
+    }
+
+    override fun onStop() {
+        appContainer.feedback.onBackground()
+        super.onStop()
+    }
 }

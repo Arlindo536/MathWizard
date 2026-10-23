@@ -1,0 +1,139 @@
+package com.arlindodishi.mathwizard.ui
+
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.compose.ui.test.onRoot
+import androidx.test.core.app.ApplicationProvider
+import com.arlindodishi.mathwizard.GameFeedback
+import com.arlindodishi.mathwizard.engine.AnswerOutcome
+import com.arlindodishi.mathwizard.engine.MetaProfile
+import com.arlindodishi.mathwizard.engine.Phase
+import com.arlindodishi.mathwizard.engine.Relics
+import com.arlindodishi.mathwizard.engine.RunConfig
+import com.arlindodishi.mathwizard.engine.RunEngine
+import com.arlindodishi.mathwizard.engine.School
+import com.arlindodishi.mathwizard.engine.RunState
+import com.arlindodishi.mathwizard.data.RunReward
+import com.arlindodishi.mathwizard.ui.home.HomeScreen
+import com.arlindodishi.mathwizard.ui.run.Feedback
+import com.arlindodishi.mathwizard.ui.run.RunScreen
+import com.arlindodishi.mathwizard.ui.run.RunUiState
+import com.arlindodishi.mathwizard.ui.run.SummaryScreen
+import com.arlindodishi.mathwizard.ui.schools.SchoolSelectScreen
+import com.arlindodishi.mathwizard.ui.theme.MathWizardTheme
+import com.arlindodishi.mathwizard.ui.upgrades.UpgradesScreen
+import com.github.takahirom.roborazzi.captureRoboImage
+import org.junit.Rule
+import org.junit.Test
+import org.junit.runner.RunWith
+import org.robolectric.RobolectricTestRunner
+import org.robolectric.annotation.Config
+import org.robolectric.annotation.GraphicsMode
+
+/**
+ * Renders the main screens on the JVM. Record with `./gradlew recordRoborazziDebug`;
+ * images land in docs/screenshots (also used by the README).
+ */
+@RunWith(RobolectricTestRunner::class)
+@GraphicsMode(GraphicsMode.Mode.NATIVE)
+@Config(sdk = [34], qualifiers = "w400dp-h860dp-xxhdpi")
+class ScreenshotTest {
+
+    @get:Rule
+    val compose = createComposeRule()
+
+    private val feedback by lazy { GameFeedback(ApplicationProvider.getApplicationContext()) }
+
+    private fun capture(name: String, advanceMillis: Long = 300, content: @Composable () -> Unit) {
+        compose.mainClock.autoAdvance = false
+        compose.setContent { MathWizardTheme { content() } }
+        compose.mainClock.advanceTimeBy(advanceMillis)
+        compose.onRoot().captureRoboImage("../docs/screenshots/$name.png")
+    }
+
+    /** A run on [floor] with a few relics, advanced by answering correctly. */
+    private fun runOn(floor: Int, school: School = School.ARITHMETIC, seed: Long = 21L): RunEngine {
+        val engine = RunEngine(RunConfig(seed = seed, school = school))
+        while (engine.state.floor < floor) {
+            while (engine.state.phase == Phase.FIGHTING) engine.answer(engine.state.problem.answer, engine.state.timeLimitMillis / 2)
+            engine.nextFloor(engine.state.relicOffer.firstOrNull()?.id)
+        }
+        return engine
+    }
+
+    private fun ui(state: RunState, feedback: Feedback? = null, answers: Int = 0) =
+        RunUiState(run = state, timeLeftMillis = state.timeLimitMillis * 6 / 10, feedback = feedback, answerCount = answers)
+
+    @Test
+    fun home() = capture("01_home") {
+        HomeScreen(
+            bestFloor = 17, runsPlayed = 23, crystals = 245, soundOn = true, musicOn = true,
+            onClimb = {}, onUpgrades = {}, onClassic = {}, onStats = {}, onSettings = {}, onToggleSound = {}, onToggleMusic = {},
+        )
+    }
+
+    @Test
+    fun run() {
+        val engine = runOn(7)
+        engine.answer(engine.state.problem.answer, 1_000)
+        capture("02_run") { RunScreen(ui(engine.state), feedback, {}, {}, {}) }
+    }
+
+    @Test
+    fun spellHit() {
+        val engine = runOn(3, School.FRACTIONS, seed = 5L)
+        val outcome = engine.answer(engine.state.problem.answer, 800) as AnswerOutcome.Hit
+        capture("03_spell", advanceMillis = 200) { RunScreen(ui(engine.state, Feedback(outcome, outcome.problem.answer), answers = 1), feedback, {}, {}, {}) }
+    }
+
+    @Test
+    fun boss() {
+        val engine = runOn(10, School.ALGEBRA, seed = 9L)
+        capture("04_boss", advanceMillis = 1600) { RunScreen(ui(engine.state), feedback, {}, {}, {}) }
+    }
+
+    @Test
+    fun relicChoice() {
+        val engine = runOn(4)
+        while (engine.state.phase == Phase.FIGHTING) engine.answer(engine.state.problem.answer, 1_000)
+        capture("05_relics", advanceMillis = 600) { RunScreen(ui(engine.state), feedback, {}, {}, {}) }
+    }
+
+    @Test
+    @Config(qualifiers = "sq-w400dp-h860dp-xxhdpi")
+    fun geometryInAlbanian() {
+        val engine = runOn(14, School.GEOMETRY, seed = 3L)
+        capture("06_geometry_sq", advanceMillis = 1600) { RunScreen(ui(engine.state), feedback, {}, {}, {}) }
+    }
+
+    @Test
+    fun summary() {
+        val engine = runOn(12)
+        while (engine.state.phase != Phase.GAME_OVER) {
+            if (engine.state.phase == Phase.FLOOR_CLEARED) engine.nextFloor()
+            engine.answer(engine.state.problem.choices.first { it != engine.state.problem.answer }, 1_000)
+        }
+        val state = ui(engine.state).copy(reward = RunReward(crystals = 61, newRecord = true, bestFloor = engine.state.floor))
+        capture("07_summary") { SummaryScreen(state, {}, {}) }
+    }
+
+    @Test
+    fun upgrades() = capture("08_upgrades") {
+        UpgradesScreen(
+            profile = MetaProfile(crystals = 245, levels = mapOf("school_fractions" to 1, "school_algebra" to 1, "vitality" to 2, "focus" to 1)),
+            onBuy = {}, onBack = {},
+        )
+    }
+
+    @Test
+    fun schools() = capture("09_schools") {
+        SchoolSelectScreen(
+            profile = MetaProfile(levels = mapOf("school_fractions" to 1, "school_algebra" to 1, "school_powers" to 1)),
+            bestBySchool = mapOf(School.ARITHMETIC to 17, School.FRACTIONS to 9, School.ALGEBRA to 4),
+            onPick = {}, onLocked = {}, onBack = {},
+        )
+    }
+
+    @Suppress("unused")
+    private val relicCount = Relics.all.size
+}

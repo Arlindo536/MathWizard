@@ -193,4 +193,11 @@
     <string name="enemy_echo_wraith">Echo Wraith</string>
     <string name="enemy_void_spider">Void Spider</string>
     <string name="enemy_night_lich">Night Lich</string>
+
+    <!-- Audio -->
+    <string name="sound_toggle_cd">Sound effects</string>
+    <string name="music_toggle_cd">Music</string>
+    <string name="toggle_on">On</string>
+    <string name="toggle_off">Off</string>
+    <string name="upgrade_owned">Owned</string>
 </resources>

@@ -192,4 +192,11 @@
     <string name="enemy_echo_wraith">Fantazma e Jehonës</string>
     <string name="enemy_void_spider">Merimanga e Zbrazëtisë</string>
     <string name="enemy_night_lich">Liçi i Natës</string>
+
+    <!-- Audio -->
+    <string name="sound_toggle_cd">Efektet zanore</string>
+    <string name="music_toggle_cd">Muzika</string>
+    <string name="toggle_on">Aktiv</string>
+    <string name="toggle_off">Joaktiv</string>
+    <string name="upgrade_owned">E hapur</string>
 </resources>

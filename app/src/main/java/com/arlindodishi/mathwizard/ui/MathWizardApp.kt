@@ -13,6 +13,7 @@ import androidx.navigation.navArgument
 import com.arlindodishi.mathwizard.DifficultyActivity
 import com.arlindodishi.mathwizard.HighScoreActivity
 import com.arlindodishi.mathwizard.SettingsActivity
+import com.arlindodishi.mathwizard.Sfx
 import com.arlindodishi.mathwizard.appContainer
 import com.arlindodishi.mathwizard.data.Records
 import com.arlindodishi.mathwizard.engine.MetaProfile
@@ -38,20 +39,30 @@ fun MathWizardApp() {
         val nav = rememberNavController()
         val context = LocalContext.current
         val meta = context.appContainer.meta
+        val feedback = context.appContainer.feedback
         NavHost(navController = nav, startDestination = Routes.HOME) {
             composable(Routes.HOME) {
                 val records by meta.records.collectAsStateWithLifecycle(Records())
                 val profile by meta.profile.collectAsStateWithLifecycle(MetaProfile())
                 val onlyArithmetic = profile.unlockedSchools == listOf(School.ARITHMETIC)
+                val soundOn by feedback.soundOn.collectAsStateWithLifecycle()
+                val musicOn by feedback.musicOn.collectAsStateWithLifecycle()
                 HomeScreen(
                     bestFloor = records.bestFloor,
                     runsPlayed = records.runsPlayed,
                     crystals = profile.crystals,
+                    soundOn = soundOn,
+                    musicOn = musicOn,
                     onClimb = { nav.navigate(if (onlyArithmetic) Routes.run(School.ARITHMETIC) else Routes.SCHOOLS) },
                     onUpgrades = { nav.navigate(Routes.UPGRADES) },
                     onClassic = { context.startActivity(Intent(context, DifficultyActivity::class.java)) },
                     onStats = { context.startActivity(Intent(context, HighScoreActivity::class.java)) },
                     onSettings = { context.startActivity(Intent(context, SettingsActivity::class.java)) },
+                    onToggleSound = {
+                        feedback.setSound(!soundOn)
+                        feedback.play(Sfx.CLICK)
+                    },
+                    onToggleMusic = { feedback.setMusic(!musicOn) },
                 )
             }
             composable(Routes.SCHOOLS) {
